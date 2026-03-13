@@ -17,7 +17,7 @@ Welcome to **Leprechaun66**, a festive 3D experience built for St. Patrick's Day
 ## How to Play
 
 - **Atmosphere**: Use the control panel buttons to switch between Meadow, Rainbow, and Disco scenes.
-- **Horde Size**: Drag the slider to increase or decrease the number of leprechauns on screen.
+- **Horde Size**: Drag the slider (desktop) or use the **+/−** buttons (mobile) to increase or decrease the number of leprechauns on screen.
 - **Randomize**: Click the **🎰 Randomize Party** button for a surprise atmosphere and horde count.
 - **Camera Controls**:
   - **Left Click + Drag**: Rotate the camera around the scene.

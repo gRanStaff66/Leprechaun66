@@ -11,12 +11,18 @@
 
         #ui-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; }
 
-        .title-container { display: flex; justify-content: center; align-items: center; gap: 15px; padding-top: 20px; margin-bottom: 5px; }
+        .title-container { display: flex; justify-content: center; align-items: center; gap: 15px; padding-top: 20px; margin-bottom: 5px; flex-wrap: wrap; }
         .top-title { text-align: center; font-size: 2.4rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; padding-top: 0; background: linear-gradient(to right, #00FF87, #60EFFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(0,0,0,0.6)); margin: 0; }
         .clover-icon { font-size: 3.2rem; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(0,255,135,0.4)); animation: gentle-rock 3s infinite ease-in-out; }
         @keyframes gentle-rock { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
 
         .subtitle-saying { text-align: center; color: rgba(255,255,255,0.95); font-size: 1.15rem; font-style: italic; font-weight: 600; margin: 0 auto; max-width: 800px; text-shadow: 0 2px 4px rgba(0,0,0,1), 0 0 15px rgba(0,0,0,0.9); pointer-events: none; transition: opacity 0.4s ease; min-height: 30px; padding: 0 20px; }
+
+        @media (max-width: 640px) {
+            .top-title { font-size: 1.5rem; letter-spacing: 1px; }
+            .clover-icon { font-size: 2rem; }
+            .subtitle-saying { font-size: 0.9rem; }
+        }
 
         #bottom-container {
             position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
@@ -31,7 +37,7 @@
         #toggle-ui:hover { background: #1a2e1a; color: white; }
 
         #bottom-panel {
-            background: rgba(10, 20, 10, 0.95); backdrop-filter: blur(20px);
+            background: rgba(10, 20, 10, 0.85); backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.1); border-radius: 0; border-bottom: none;
             padding: 15px 35px; display: flex; align-items: center; gap: 30px;
             box-shadow: 0 -10px 50px rgba(0,0,0,0.8); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -41,6 +47,9 @@
 
         .control-group { display: flex; align-items: center; gap: 12px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 25px; }
         .control-group:last-child { border-right: none; padding-right: 0; }
+
+        .atmosphere-btns { display: flex; gap: 8px; }
+
         .label { color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
 
         .btn-sm { padding: 8px 18px; border-radius: 10px; font-weight: 800; font-size: 11px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; color: white; text-transform: uppercase; }
@@ -55,7 +64,56 @@
         input[type=range] { width: 130px; cursor: pointer; accent-color: #00FF87; height: 4px; }
         #count-display { color: #00FF87; font-weight: 900; min-width: 30px; font-size: 18px; text-align: center; }
 
+        .stepper-btn {
+            width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.1);
+            color: white; font-size: 20px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);
+            display: none; align-items: center; justify-content: center; cursor: pointer;
+        }
+
         #loading { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: #010101; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #00FF87; z-index: 500; transition: opacity 0.5s; }
+
+        /* Mobile specific styles */
+        @media (max-aspect-ratio: 1/1) {
+            .title-container { flex-direction: column; gap: 0; padding-top: 10px; }
+            .top-title { font-size: 1.5rem; }
+            .clover-icon { font-size: 2rem; }
+            .subtitle-saying { font-size: 0.85rem; padding: 0 15px; font-weight: 500; }
+
+            #toggle-ui {
+                position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px;
+                border-radius: 50%; border: none; background: #00FF87; color: #000;
+                font-size: 24px; box-shadow: 0 4px 20px rgba(0,255,135,0.4);
+                display: flex; align-items: center; justify-content: center;
+                z-index: 100; transition: transform 0.3s;
+            }
+            #toggle-ui.active { transform: rotate(45deg); background: #ff4444; color: white; }
+
+            #bottom-container { width: 100%; }
+
+            #bottom-panel {
+                position: fixed; bottom: 0; left: 0; width: 100%;
+                flex-direction: column; gap: 15px; padding: 25px 20px 100px 20px;
+                border-radius: 30px 30px 0 0; transform: translateY(100%);
+                opacity: 1; height: auto; display: grid !important; grid-template-columns: 1fr;
+            }
+            #bottom-panel.collapsed { transform: translateY(100%); opacity: 0; }
+            #bottom-panel.active { transform: translateY(0); opacity: 1; }
+
+            .control-group {
+                flex-direction: row; border-right: none; padding-right: 0;
+                width: 100%; justify-content: space-between;
+                background: rgba(255,255,255,0.05); padding: 12px; border-radius: 15px;
+            }
+            .control-group.horde-group { justify-content: center; gap: 20px; }
+
+            .atmosphere-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; width: 100%; }
+            .btn-sm { width: 100%; text-align: center; padding: 10px 5px; font-size: 9px; }
+
+            input[type=range] { display: none; }
+            .stepper-btn { display: flex; }
+
+            .btn-rand { width: 100%; padding: 15px; font-size: 14px; }
+        }
     </style>
 </head>
 <body>
@@ -76,27 +134,31 @@
         </div>
 
         <div id="bottom-container">
-            <button id="toggle-ui" onclick="toggleUI()">HIDE CONTROLS</button>
-            <div id="bottom-panel">
+            <button id="toggle-ui" onclick="toggleUI()">⚙️</button>
+            <div id="bottom-panel" class="collapsed">
                 <div class="control-group">
                     <span class="label">Atmosphere</span>
-                    <button class="btn-sm bg-meadow btn-active" onclick="changeScene('meadow', this)">Meadow</button>
-                    <button class="btn-sm bg-rainbow" onclick="changeScene('rainbow', this)">Rainbow</button>
-                    <button class="btn-sm bg-disco" onclick="changeScene('disco', this)">Disco</button>
+                    <div class="atmosphere-btns">
+                        <button class="btn-sm bg-meadow btn-active" onclick="changeScene('meadow', this)">Meadow</button>
+                        <button class="btn-sm bg-rainbow" onclick="changeScene('rainbow', this)">Rainbow</button>
+                        <button class="btn-sm bg-disco" onclick="changeScene('disco', this)">Disco</button>
+                    </div>
                 </div>
 
-                <div class="control-group">
+                <div class="control-group horde-group">
                     <span class="label">Horde Size</span>
+                    <button class="stepper-btn" onclick="stepLep(-1)">−</button>
                     <input type="range" id="lep-slider" min="1" max="66" value="1" oninput="updateLepCount(this.value)">
                     <span id="count-display">1</span>
+                    <button class="stepper-btn" onclick="stepLep(1)">+</button>
                 </div>
 
                 <div class="control-group">
                     <button class="btn-sm btn-rand" onclick="randomParty()">🎰 Randomize Party</button>
                 </div>
 
-                <div class="text-[9px] text-white/40 uppercase font-black leading-tight tracking-wider px-4">
-                    Drag: Rotate<br>R-Click: Pan
+                <div class="text-[9px] text-white/40 uppercase font-black leading-tight tracking-wider px-4 text-center">
+                    Drag: Rotate • R-Click: Pan
                 </div>
             </div>
         </div>
@@ -173,9 +235,24 @@
         window.toggleUI = function() {
             const panel = document.getElementById('bottom-panel');
             const btn = document.getElementById('toggle-ui');
-            panel.classList.toggle('collapsed');
-            btn.innerText = panel.classList.contains('collapsed') ? 'SHOW CONTROLS' : 'HIDE CONTROLS';
+            const isMobile = window.innerWidth / window.innerHeight < 1.0;
+
+            if (isMobile) {
+                panel.classList.toggle('active');
+                btn.classList.toggle('active');
+                btn.innerText = panel.classList.contains('active') ? '✕' : '⚙️';
+            } else {
+                panel.classList.toggle('collapsed');
+                btn.innerText = panel.classList.contains('collapsed') ? 'SHOW CONTROLS' : 'HIDE CONTROLS';
+            }
         };
+
+        window.stepLep = function(val) {
+            const slider = document.getElementById('lep-slider');
+            const newVal = Math.max(1, Math.min(66, parseInt(slider.value) + val));
+            slider.value = newVal;
+            window.updateLepCount(newVal);
+        }
 
         // Procedural Textures
         function createBumpMap(type) {
@@ -264,6 +341,19 @@
 
         init();
 
+        function updateCamera() {
+            const aspect = window.innerWidth / window.innerHeight;
+            camera.aspect = aspect;
+
+            // Adjust FOV for portrait to avoid "zoomed in" feel
+            if (aspect < 1) {
+                camera.fov = 40 / aspect; // Expand FOV as aspect gets narrower
+            } else {
+                camera.fov = 40;
+            }
+            camera.updateProjectionMatrix();
+        }
+
         function init() {
             initMaterials();
 
@@ -271,6 +361,7 @@
             scene.fog = new THREE.FogExp2(0x87CEEB, 0.002);
 
             camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 400);
+            updateCamera();
             camera.position.set(0, 12, 50);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -626,10 +717,21 @@
         }
 
         function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+            updateCamera();
             renderer.setSize(window.innerWidth, window.innerHeight);
             composer.setSize(window.innerWidth, window.innerHeight);
+
+            // Handle UI state switch
+            const panel = document.getElementById('bottom-panel');
+            const btn = document.getElementById('toggle-ui');
+            const isMobile = window.innerWidth / window.innerHeight < 1.0;
+            if (!isMobile) {
+                panel.classList.remove('active');
+                btn.classList.remove('active');
+                btn.innerText = panel.classList.contains('collapsed') ? 'SHOW CONTROLS' : 'HIDE CONTROLS';
+            } else {
+                btn.innerText = panel.classList.contains('active') ? '✕' : '⚙️';
+            }
         }
 
         window.randomParty = function() {
