@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leprechaun66 - 3D Dancing Leprechaun Party</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Inter', sans-serif; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+
+        #ui-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; }
+
+        .title-container { display: flex; justify-content: center; align-items: center; gap: 15px; padding-top: 20px; margin-bottom: 5px; flex-wrap: wrap; }
+        .top-title { text-align: center; font-size: 2.4rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; padding-top: 0; background: linear-gradient(to right, #00FF87, #60EFFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(0,0,0,0.6)); margin: 0; }
+        .clover-icon { font-size: 3.2rem; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(0,255,135,0.4)); animation: gentle-rock 3s infinite ease-in-out; }
+        @keyframes gentle-rock { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+
+        .subtitle-saying { text-align: center; color: rgba(255,255,255,0.95); font-size: 1.15rem; font-style: italic; font-weight: 600; margin: 0 auto; max-width: 800px; text-shadow: 0 2px 4px rgba(0,0,0,1), 0 0 15px rgba(0,0,0,0.9); pointer-events: none; transition: opacity 0.4s ease; min-height: 30px; padding: 0 20px; }
+
+        @media (max-width: 640px) {
+            .top-title { font-size: 1.5rem; letter-spacing: 1px; }
+            .clover-icon { font-size: 2rem; }
+            .subtitle-saying { font-size: 0.9rem; }
+        }
+
+        #bottom-container {
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center; pointer-events: auto;
+        }
+
+        #toggle-ui {
+            background: rgba(10, 20, 10, 0.95); border: 1px solid rgba(255,255,255,0.1); border-bottom: none;
+            color: #00FF87; padding: 6px 24px; border-radius: 12px 12px 0 0; cursor: pointer; font-size: 10px; font-weight: 900;
+            letter-spacing: 1px; transition: all 0.2s; pointer-events: auto;
+        }
+        #toggle-ui:hover { background: #1a2e1a; color: white; }
+
+        #bottom-panel {
+            background: rgba(10, 20, 10, 0.95); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 0; border-bottom: none;
+            padding: 15px 35px; display: flex; align-items: center; gap: 30px;
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.8); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 95vw; pointer-events: auto;
+        }
+        #bottom-panel.collapsed { height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; transform: translateY(100%); }
+
+        .control-group { display: flex; align-items: center; gap: 12px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 25px; }
+        .control-group:last-child { border-right: none; padding-right: 0; }
+
+        @media (max-width: 768px) {
+            #bottom-panel { flex-direction: column; gap: 15px; padding: 20px; max-height: 80vh; overflow-y: auto; }
+            #bottom-panel.collapsed { max-height: 0; padding-top: 0; padding-bottom: 0; }
+            .control-group { border-right: none; padding-right: 0; width: 100%; justify-content: center; flex-wrap: wrap; }
+        }
+        .label { color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .btn-sm { padding: 8px 18px; border-radius: 10px; font-weight: 800; font-size: 11px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; color: white; text-transform: uppercase; }
+        .btn-sm:hover { transform: translateY(-2px); filter: brightness(1.2); }
+        .btn-active { border-color: #fff; box-shadow: 0 0 15px rgba(0, 255, 135, 0.3); }
+
+        .bg-meadow { background: #1e7a1e; }
+        .bg-rainbow { background: linear-gradient(90deg, #ff0055, #ffaa00); }
+        .bg-disco { background: #6b21a8; }
+        .btn-rand { background: linear-gradient(90deg, #FF512F, #DD2476); }
+
+        input[type=range] { width: 130px; cursor: pointer; accent-color: #00FF87; height: 4px; }
+        #count-display { color: #00FF87; font-weight: 900; min-width: 30px; font-size: 18px; text-align: center; }
+
+        #loading { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: #010101; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #00FF87; z-index: 500; transition: opacity 0.5s; }
+    </style>
+</head>
+<body>
+
+    <div id="loading">
+        <div class="w-16 h-16 border-4 border-green-950 border-t-green-400 rounded-full animate-spin mb-6"></div>
+        <div class="font-black tracking-[0.3em] uppercase text-xs">Wiring the Lights...</div>
+    </div>
+
+    <div id="ui-wrapper">
+        <div>
+            <div class="title-container">
+                <span class="clover-icon" style="animation-delay: 0s;">🍀</span>
+                <h1 class="top-title">Happy St Patrick's Day~!</h1>
+                <span class="clover-icon" style="animation-delay: -1.5s;">🍀</span>
+            </div>
+            <div id="irish-saying" class="subtitle-saying"></div>
+        </div>
+
+        <div id="bottom-container">
+            <button id="toggle-ui" onclick="toggleUI()">HIDE CONTROLS</button>
+            <div id="bottom-panel">
+                <div class="control-group">
+                    <span class="label">Atmosphere</span>
+                    <button class="btn-sm bg-meadow btn-active" onclick="changeScene('meadow', this)">Meadow</button>
+                    <button class="btn-sm bg-rainbow" onclick="changeScene('rainbow', this)">Rainbow</button>
+                    <button class="btn-sm bg-disco" onclick="changeScene('disco', this)">Disco</button>
+                </div>
+
+                <div class="control-group">
+                    <span class="label">Horde Size</span>
+                    <input type="range" id="lep-slider" min="1" max="66" value="1" oninput="updateLepCount(this.value)">
+                    <span id="count-display">1</span>
+                </div>
+
+                <div class="control-group">
+                    <button class="btn-sm btn-rand" onclick="randomParty()">🎰 Randomize Party</button>
+                </div>
+
+                <div class="text-[9px] text-white/40 uppercase font-black leading-tight tracking-wider px-4">
+                    Drag: Rotate<br>R-Click: Pan
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+        let scene, camera, renderer, composer, bloomPass, clock, controls;
+        let activeLeps = [];
+        let lights = { amb: null, dir: null, fill: null };
+        let currentBg = 'meadow';
+
+        let envs = { meadow: new THREE.Group(), rainbow: new THREE.Group(), disco: new THREE.Group() };
+        let envMaps = { disco: null, outdoors: null };
+
+        // Disco specific assets
+        let discoBallGroup, pinSpots = [];
+        let discoMainLight;
+        let floorTiles = [];
+        let projectedDots = [];
+        let baseRayDirections = [];
+
+        // Room Config
+        const ROOM_W = 100;
+        const ROOM_H = 30;
+        const ROOM_D = 100;
+        const BALL_Y = 18;
+        const roomBox = new THREE.Box3(
+            new THREE.Vector3(-ROOM_W/2, 0, -ROOM_D/2),
+            new THREE.Vector3(ROOM_W/2, ROOM_H, ROOM_D/2)
+        );
+
+        const irishSayings = [
+            "\"An Irishman is never drunk as long as he has a blade of grass to hold onto.\"",
+            "\"As you slide down the banister of life, may the splinters never point in the wrong direction.\"",
+            "\"May you be at the gates of heaven an hour before the devil knows you're dead!\"",
+            "\"If you're lucky enough to be Irish, you're lucky enough!\"",
+            "\"There are only two kinds of people in the world: The Irish, and those who wish they were.\"",
+            "\"May your pockets be heavy and your heart be light.\"",
+            "\"A best friend is like a four-leaf clover: hard to find and lucky to have.\"",
+            "\"I drink to your health so often, I'm starting to worry about my own!\"",
+            "\"May the wind at your back not be the result of the corned beef and cabbage.\"",
+            "\"God invented whiskey to keep the Irish from ruling the world.\"",
+            "\"A good laugh and a long sleep are the two best cures for anything.\"",
+            "\"May your glass be ever full, and your roof never leak.\""
+        ];
+
+        // Global functions mapped for UI
+        window.updateSaying = function() {
+            const sayingEl = document.getElementById('irish-saying');
+            sayingEl.style.opacity = 0;
+            setTimeout(() => {
+                const randIndex = Math.floor(Math.random() * irishSayings.length);
+                sayingEl.innerText = irishSayings[randIndex];
+                sayingEl.style.opacity = 1;
+            }, 400);
+        };
+
+        window.toggleUI = function() {
+            const panel = document.getElementById('bottom-panel');
+            const btn = document.getElementById('toggle-ui');
+            panel.classList.toggle('collapsed');
+            btn.innerText = panel.classList.contains('collapsed') ? 'SHOW CONTROLS' : 'HIDE CONTROLS';
+        };
+
+        // Procedural Textures
+        function createBumpMap(type) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            if (type === 'fabric') {
+                ctx.fillStyle = '#888'; ctx.fillRect(0,0,512,512);
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+                for(let i=0; i<512; i+=4){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,512); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(512,i); ctx.stroke(); }
+            } else {
+                for(let i=0; i<512; i++){ for(let j=0; j<512; j++){ const n = Math.random()*255; ctx.fillStyle = `rgb(${n},${n},${n})`; ctx.fillRect(i,j,1,1); } }
+            }
+            const t = new THREE.CanvasTexture(canvas);
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            return t;
+        }
+        const texFabric = createBumpMap('fabric');
+        const texLeather = createBumpMap('leather');
+
+        // Procedural Clover Meadow Texture
+        function createCloverMap() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024; canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+
+            // Base dark green grass
+            ctx.fillStyle = '#1e661e';
+            ctx.fillRect(0, 0, 1024, 1024);
+
+            // Draw scattered clovers
+            for(let i=0; i<450; i++) {
+                const x = Math.random() * 1024;
+                const y = Math.random() * 1024;
+                const size = 15 + Math.random() * 20;
+                const angle = Math.random() * Math.PI;
+
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+
+                // Mix of emerald and classic green
+                ctx.fillStyle = (Math.random() > 0.85) ? '#32cd32' : '#228b22';
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 4;
+
+                // Most are 3-leaf, some are lucky 4-leaf clovers
+                const leaves = (Math.random() > 0.95) ? 4 : 3;
+                for(let l=0; l<leaves; l++) {
+                    ctx.rotate((Math.PI * 2) / leaves);
+                    ctx.beginPath();
+                    ctx.arc(size/2, 0, size/2, 0, Math.PI*2);
+                    ctx.fill();
+                }
+
+                // Little stem
+                ctx.beginPath();
+                ctx.moveTo(0,0);
+                ctx.quadraticCurveTo(-size/2, size, -size, size*1.5);
+                ctx.strokeStyle = ctx.fillStyle;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            const t = new THREE.CanvasTexture(canvas);
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            t.repeat.set(12, 12); // Repeat heavily across the field
+            return t;
+        }
+        const texClover = createCloverMap();
+
+        const mats = {};
+
+        function initMaterials() {
+            mats.gold = new THREE.MeshStandardMaterial({
+                color: 0xFFD700, metalness: 0.8, roughness: 0.15,
+                emissive: 0x332200, emissiveIntensity: 0.5
+            });
+            mats.suit = new THREE.MeshStandardMaterial({ color: 0x008A27, roughness: 0.9, bumpMap: texFabric, bumpScale: 0.01 });
+            mats.darkSuit = new THREE.MeshStandardMaterial({ color: 0x004d16, roughness: 0.9, bumpMap: texFabric, bumpScale: 0.01 });
+            mats.skin = new THREE.MeshStandardMaterial({ color: 0xFFD3B6, roughness: 0.45 });
+            mats.beard = new THREE.MeshStandardMaterial({ color: 0xD95A00, roughness: 0.8 });
+            mats.leather = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.7, bumpMap: texLeather, bumpScale: 0.02 });
+        }
+
+        init();
+
+        function init() {
+            initMaterials();
+
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x87CEEB, 0.002);
+
+            camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 400);
+            camera.position.set(0, 12, 50);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            document.body.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.maxPolarAngle = Math.PI / 2.05;
+            controls.minDistance = 5;
+            controls.maxDistance = 120;
+            controls.target.set(0, 5, 0);
+
+            // GLOBAL LIGHTS
+            lights.amb = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(lights.amb);
+
+            // Sunlight / Primary Key Light
+            lights.dir = new THREE.DirectionalLight(0xfff5e6, 1.8);
+            lights.dir.position.set(20, 40, 20);
+            lights.dir.castShadow = true;
+            lights.dir.shadow.mapSize.width = 2048;
+            lights.dir.shadow.mapSize.height = 2048;
+            lights.dir.shadow.camera.near = 0.5;
+            lights.dir.shadow.camera.far = 100;
+            lights.dir.shadow.camera.left = -40;
+            lights.dir.shadow.camera.right = 40;
+            lights.dir.shadow.camera.top = 40;
+            lights.dir.shadow.camera.bottom = -40;
+            lights.dir.shadow.bias = -0.001;
+            scene.add(lights.dir);
+
+            // Front Fill Light (Crucial for seeing dancers from the camera POV)
+            lights.fill = new THREE.DirectionalLight(0xffffff, 0);
+            lights.fill.position.set(0, 15, 40); // Sits behind the camera pointing at dancers
+            scene.add(lights.fill);
+
+            buildEnvironments();
+            buildDiscoRoom();
+
+            // Set up Post Processing Pipeline
+            const renderScene = new RenderPass(scene, camera);
+            bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.2, 0.4, 0.85);
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
+            composer.addPass(new OutputPass());
+
+            window.updateLepCount = function(val) {
+                document.getElementById('count-display').innerText = val;
+                const target = parseInt(val);
+                while(activeLeps.length < target) {
+                    const r = activeLeps.length === 0 ? 0 : 5 + Math.random() * 30;
+                    const a = Math.random() * Math.PI * 2;
+                    activeLeps.push(createLep(Math.cos(a)*r, Math.sin(a)*r));
+                }
+                while(activeLeps.length > target) { const l = activeLeps.pop(); scene.remove(l.group); }
+            }
+
+            window.changeScene = function(type, btn) {
+                currentBg = type;
+                document.querySelectorAll('.btn-sm').forEach(b => b.classList.remove('btn-active'));
+                if(btn) btn.classList.add('btn-active');
+                Object.keys(envs).forEach(k => envs[k].visible = (k === type));
+
+                camera.position.set(0, 12, 50);
+                controls.target.set(0, 5, 0);
+                controls.update();
+
+                if(type === 'disco') {
+                    // LOW-KEY NIGHTCLUB LIGHTING
+                    scene.fog.color.setHex(0x050510);
+                    scene.fog.density = 0.008;
+
+                    lights.amb.color.setHex(0x2a1a4a); // Deep purple ambient to define shapes
+                    lights.amb.intensity = 1.8; // Bumped up significantly so darks aren't pitch black
+
+                    lights.dir.intensity = 0; // Turn off the outdoor sun
+
+                    // Turn on the Front Fill Light (This illuminates the dancers from camera POV)
+                    lights.fill.color.setHex(0xaa44ff); // Magenta fill
+                    lights.fill.intensity = 1.5; // Bumped up for better front visibility
+
+                    discoMainLight.intensity = 1.5; // Keep overhead light soft to avoid blowing out hats
+
+                    // Tame the disco ball spots so they don't blow out the bloom
+                    pinSpots.forEach(s => s.intensity = 150);
+
+                    bloomPass.strength = 0.5; // Controlled bloom for tiles and glints without blinding
+                } else {
+                    // HIGH-KEY OUTDOOR LIGHTING
+                    scene.fog.color.setHex(0x87CEEB);
+                    scene.fog.density = 0.002;
+
+                    lights.amb.color.setHex(0xffffff);
+                    lights.amb.intensity = 0.8;
+
+                    lights.dir.intensity = 1.8; // Sun is on
+
+                    lights.fill.color.setHex(0xaaddff); // Soft sky-blue fill
+                    lights.fill.intensity = 0.5;
+
+                    discoMainLight.intensity = 0;
+                    pinSpots.forEach(s => s.intensity = 0);
+
+                    bloomPass.strength = 0.2; // Subtle bloom outdoors
+                }
+            };
+
+            window.updateLepCount(1);
+            window.updateSaying();
+            window.changeScene('meadow', document.querySelector('.bg-meadow'));
+
+            setTimeout(() => {
+                document.getElementById('loading').style.opacity = '0';
+                setTimeout(()=>document.getElementById('loading').remove(), 500);
+            }, 800);
+
+            window.addEventListener('resize', onWindowResize);
+            animate();
+        }
+
+        function createLep(x, z) {
+            const lep = { beardSpheres: [], phase: Math.random() * Math.PI * 2, group: new THREE.Group() };
+            lep.group.position.set(x, 0, z);
+            lep.group.rotation.y = (Math.random() - 0.5) * 2;
+            scene.add(lep.group);
+
+            const hips = new THREE.Group(); hips.position.y = 1.9; lep.group.add(hips);
+            const torso = new THREE.Group(); hips.add(torso);
+            lep.hips = hips; lep.torso = torso;
+
+            const coat = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 1.3, 16), mats.suit);
+            coat.position.y = 0.65; coat.castShadow = true; coat.receiveShadow = true; torso.add(coat);
+
+            const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.5, 0.18, 16), mats.leather);
+            belt.position.y = 0.25; torso.add(belt);
+            const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.1), mats.gold);
+            buckle.position.set(0, 0.25, 0.48); torso.add(buckle);
+
+            const headPivot = new THREE.Group(); headPivot.position.y = 1.4; torso.add(headPivot);
+            lep.head = headPivot;
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 24, 24), mats.skin); head.castShadow = true; headPivot.add(head);
+
+            const beardGroup = new THREE.Group();
+            for(let i=0; i<12; i++) {
+                const bSphere = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), mats.beard);
+                const angle = (i / 11) * Math.PI - Math.PI/2;
+                bSphere.position.set(Math.sin(angle)*0.35, -0.25 + Math.abs(Math.sin(angle))*0.15, Math.cos(angle)*0.3);
+                beardGroup.add(bSphere);
+                lep.beardSpheres.push({ mesh: bSphere, basePos: bSphere.position.clone(), bPhase: i*0.5 });
+            }
+            headPivot.add(beardGroup);
+
+            const hat = new THREE.Group(); hat.position.y = 0.35; headPivot.add(hat);
+            hat.add(new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.05, 16), mats.suit));
+            const top = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.7, 16), mats.suit); top.position.y = 0.35; hat.add(top);
+            const hBuckle = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.05), mats.gold); hBuckle.position.set(0, 0.1, 0.42); hat.add(hBuckle);
+
+            function arm(isL) {
+                const s = isL ? -1 : 1;
+                const sh = new THREE.Group(); sh.position.set(s*0.6, 1.1, 0); torso.add(sh);
+                const u = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.5), mats.suit); u.translateY(-0.25); sh.add(u);
+                const el = new THREE.Group(); el.position.y = -0.5; sh.add(el);
+                const l = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.4), mats.suit); l.translateY(-0.2); el.add(l);
+                const h = new THREE.Mesh(new THREE.SphereGeometry(0.12), mats.skin); h.position.y = -0.5; el.add(h);
+                return { sh, el };
+            }
+            const lA = arm(true); lep.lSh = lA.sh; lep.lEl = lA.el;
+            const rA = arm(false); lep.rSh = rA.sh; lep.rEl = rA.el;
+
+            function leg(isL) {
+                const s = isL ? -1 : 1;
+                const hp = new THREE.Group(); hp.position.set(s*0.28, 0, 0); hips.add(hp);
+                const t = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.15, 0.6), mats.darkSuit); t.translateY(-0.3); hp.add(t);
+                const kn = new THREE.Group(); kn.position.y = -0.6; hp.add(kn);
+                const c = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.1, 0.5), mats.suit); c.translateY(-0.25); kn.add(c);
+                const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.2, 0.45), mats.leather); shoe.position.set(0,-0.6, 0.1); kn.add(shoe);
+                const sBuckle = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.05), mats.gold); sBuckle.position.set(0, -0.5, 0.32); kn.add(sBuckle);
+                return { hp, kn };
+            }
+            const lL = leg(true); lep.lHp = lL.hp; lep.lKn = lL.kn;
+            const rL = leg(false); lep.rHp = rL.hp; lep.rKn = rL.kn;
+
+            return lep;
+        }
+
+        function buildEnvironments() {
+            // OUTDOORS (Meadow & Rainbow)
+            const floorOut = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_W*3, ROOM_D*3), new THREE.MeshStandardMaterial({ map: texClover, roughness: 0.9 }));
+            floorOut.rotation.x = -Math.PI/2; floorOut.receiveShadow = true;
+            envs.meadow.add(floorOut);
+
+            const sky = new THREE.Mesh(new THREE.SphereGeometry(180, 32, 32), new THREE.MeshBasicMaterial({ color: 0x87CEEB, side: THREE.BackSide }));
+            envs.meadow.add(sky);
+
+            const rSky = sky.clone();
+            const floorRainbow = floorOut.clone();
+            envs.rainbow.add(rSky);
+            envs.rainbow.add(floorRainbow);
+
+            const cols = [0xFF0000, 0xFF7F00, 0xFFFF00, 0x00FF00, 0x0000FF, 0x9400D3];
+            cols.forEach((c, i) => {
+                const arc = new THREE.Mesh(new THREE.TorusGeometry(40 - i*1.2, 0.8, 12, 100, Math.PI), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.6 }));
+                // Shift rainbow right and slightly down so its left edge lands exactly at the pot (x=-15, z=-25)
+                arc.position.set(25, -2, -25);
+                envs.rainbow.add(arc);
+            });
+
+            const potGroup = new THREE.Group(); potGroup.position.set(-15, 0, -25); envs.rainbow.add(potGroup);
+            const pot = new THREE.Mesh(new THREE.SphereGeometry(5, 32, 20, 0, Math.PI*2, 0, Math.PI/1.5), mats.leather);
+            pot.rotation.x = Math.PI; pot.position.y = 4.5; pot.castShadow = true; potGroup.add(pot);
+            const coins = new THREE.Mesh(new THREE.SphereGeometry(4.5, 20, 10, 0, Math.PI*2, 0, Math.PI/2), mats.gold);
+            coins.position.y = 4.2; potGroup.add(coins);
+
+            Object.values(envs).forEach(e => { e.visible = false; scene.add(e); });
+        }
+
+        function buildDiscoRoom() {
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.8 });
+            const ceilingMat = new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.9 });
+
+            // Core club light (Illuminates the dancers from overhead)
+            discoMainLight = new THREE.PointLight(0xeeeeff, 0, 80);
+            discoMainLight.position.set(0, BALL_Y - 3, 0);
+            envs.disco.add(discoMainLight);
+
+            // Ceiling
+            const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_W*2, ROOM_D*2), ceilingMat);
+            ceiling.rotation.x = Math.PI / 2; ceiling.position.y = ROOM_H;
+            envs.disco.add(ceiling);
+
+            // LED Dance Floor Array
+            const gridSize = 20;
+            const tileSize = 3.8;
+            const spacing = 4.0;
+            const startXY = -((gridSize - 1) * spacing) / 2;
+            const tileGeo = new THREE.BoxGeometry(tileSize, 0.1, tileSize);
+
+            for(let i=0; i<gridSize; i++) {
+                for(let j=0; j<gridSize; j++) {
+                    const tileMat = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: new THREE.Color(), roughness: 0.1, metalness: 0.3 });
+                    const tile = new THREE.Mesh(tileGeo, tileMat);
+                    tile.position.set(startXY + i * spacing, 0.05, startXY + j * spacing);
+
+                    // Full Rainbow LED Array
+                    const colors = [0xFF0000, 0xFF7F00, 0xFFFF00, 0x00FF00, 0x0000FF, 0x4B0082, 0x9400D3];
+                    tile.userData = {
+                        baseColor: new THREE.Color(colors[Math.floor(Math.random() * colors.length)]),
+                        phase: Math.random() * Math.PI * 2,
+                        speed: 0.5 + Math.random() * 1.5
+                    };
+                    floorTiles.push(tile);
+                    envs.disco.add(tile);
+                }
+            }
+
+            // High-Fidelity Physical Disco Ball
+            const ballRadius = 4.5;
+            const mirrorTileSize = 0.4;
+            const segmentsLat = 24;
+
+            discoBallGroup = new THREE.Group();
+            discoBallGroup.position.y = BALL_Y;
+            envs.disco.add(discoBallGroup);
+
+            // The physical mirror material relies on specular highlights from the spotlights
+            const silverMirrorMat = new THREE.MeshStandardMaterial({
+                color: 0xdddddd, metalness: 1.0, roughness: 0.1, flatShading: true
+            });
+
+            const mTileGeom = new THREE.BoxGeometry(mirrorTileSize, mirrorTileSize, 0.1);
+
+            for (let i = 0; i < segmentsLat; i++) {
+                const lat = (i / segmentsLat) * Math.PI;
+                const ringRadius = Math.sin(lat) * ballRadius;
+                const y = Math.cos(lat) * ballRadius;
+                const tilesInRing = Math.max(4, Math.floor((Math.PI * 2 * ringRadius) / (mirrorTileSize * 1.05)));
+
+                for (let j = 0; j < tilesInRing; j++) {
+                    const lon = (j / tilesInRing) * Math.PI * 2;
+                    const x = Math.sin(lon) * ringRadius;
+                    const z = Math.cos(lon) * ringRadius;
+
+                    const tile = new THREE.Mesh(mTileGeom, silverMirrorMat);
+                    tile.position.set(x, y, z);
+                    tile.lookAt(0, 0, 0);
+                    // Jitter normals for fractured reflections
+                    tile.rotation.x += (Math.random() - 0.5) * 0.1;
+                    tile.rotation.y += (Math.random() - 0.5) * 0.1;
+                    discoBallGroup.add(tile);
+                }
+            }
+
+            const grout = new THREE.Mesh(new THREE.SphereGeometry(ballRadius * 0.95, 32, 32), new THREE.MeshStandardMaterial({ color: 0x050505 }));
+            discoBallGroup.add(grout);
+
+            // Pin Spots aimed perfectly at the ball to create the Mirror effect
+            const cornerDist = 20;
+            const spotPositions = [ [cornerDist, ROOM_H - 2, cornerDist], [-cornerDist, ROOM_H - 2, cornerDist], [cornerDist, ROOM_H - 2, -cornerDist], [-cornerDist, ROOM_H - 2, -cornerDist] ];
+            spotPositions.forEach(pos => {
+                const spot = new THREE.SpotLight(0xffffff, 0); // Intensity managed by changeScene
+                spot.position.set(pos[0], pos[1], pos[2]);
+                spot.angle = 0.2; spot.penumbra = 0.1; spot.decay = 1.0; spot.distance = 60;
+
+                const targetObj = new THREE.Object3D(); targetObj.position.set(0, BALL_Y, 0);
+                envs.disco.add(targetObj);
+                spot.target = targetObj;
+                pinSpots.push(spot);
+                envs.disco.add(spot);
+            });
+
+            // Projected Light Dots Simulation (Cast onto the floor)
+            const dotCount = 500;
+            const dotGeo = new THREE.PlaneGeometry(1.2, 1.2);
+            const dotMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false });
+
+            for(let i=0; i<dotCount; i++) {
+                const vector = new THREE.Vector3((Math.random()-0.5)*2, (Math.random()-0.5)*2, (Math.random()-0.5)*2).normalize();
+                baseRayDirections.push(vector);
+                const dot = new THREE.Mesh(dotGeo, dotMat);
+                dot.scale.setScalar(0.5 + Math.random() * 1.5);
+                projectedDots.push(dot);
+                envs.disco.add(dot);
+            }
+        }
+
+        function captureEnvironments() {
+            // Generates high-quality reflection maps for the materials
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            pmremGenerator.compileEquirectangularShader();
+
+            // 1. Capture Outdoors
+            const tempOutdoors = new THREE.Scene();
+            tempOutdoors.add(envs.meadow);
+            envMaps.outdoors = pmremGenerator.fromScene(tempOutdoors).texture;
+            scene.add(envs.meadow); // Restore
+
+            // 2. Capture Disco (Temporarily boost light for rich reflections)
+            const tempDisco = new THREE.Scene();
+            tempDisco.add(envs.disco);
+            const tempAmb = new THREE.AmbientLight(0xffffff, 2.0);
+            tempDisco.add(tempAmb);
+            envMaps.disco = pmremGenerator.fromScene(tempDisco).texture;
+            scene.add(envs.disco); // Restore
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        window.randomParty = function() {
+            const c = Math.floor(Math.random()*66)+1;
+            document.getElementById('lep-slider').value = c;
+            window.updateLepCount(c);
+            window.updateSaying();
+            const ts = ['meadow', 'rainbow', 'disco'];
+            const t = ts[Math.floor(Math.random()*3)];
+            window.changeScene(t, document.querySelector(`.bg-${t}`));
+        };
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+
+            // Animate Leprechauns
+            activeLeps.forEach(l => {
+                const s = (time * 4.2) + l.phase;
+                l.hips.position.x = Math.sin(s) * 0.3;
+                l.hips.position.y = 1.9 + Math.abs(Math.sin(s*2)) * 0.15;
+                l.hips.rotation.y = Math.sin(s*0.5) * 0.25;
+                l.torso.rotation.y = -Math.sin(s*0.5) * 0.3;
+                const step = Math.sin(s);
+                l.lHp.rotation.x = Math.max(0, -step); l.lKn.rotation.x = Math.min(0, step)*1.3;
+                const rS = Math.sin(s + Math.PI);
+                l.rHp.rotation.x = Math.max(0, -rS); l.rKn.rotation.x = Math.min(0, rS)*1.3;
+                l.lSh.rotation.x = -0.5 + Math.sin(s*2)*0.5; l.rSh.rotation.x = -0.5 + Math.sin(s*2+Math.PI)*0.5;
+                l.head.rotation.y = Math.sin(s)*0.4;
+                l.beardSpheres.forEach(b => { b.mesh.position.y = b.basePos.y + Math.sin(s*3 + b.bPhase)*0.025; });
+            });
+
+            // Animate Disco Scene Elements
+            if(currentBg === 'disco' && discoBallGroup) {
+                // Ball Rotation
+                discoBallGroup.rotation.y += delta * 0.3;
+                discoBallGroup.rotation.z = Math.sin(time * 0.5) * 0.03;
+
+                // LED Floor Pulses
+                floorTiles.forEach(tile => {
+                    const data = tile.userData;
+                    const intensity = (Math.sin(time * data.speed + data.phase) + 1) / 2;
+                    tile.material.emissive.copy(data.baseColor).multiplyScalar(intensity * 0.7);
+                });
+
+                // Projected Dots Raycasting
+                const origin = new THREE.Vector3(0, BALL_Y, 0);
+                const euler = new THREE.Euler(discoBallGroup.rotation.x, discoBallGroup.rotation.y, discoBallGroup.rotation.z);
+                const raycaster = new THREE.Ray();
+                raycaster.origin.copy(origin);
+
+                for(let i=0; i<projectedDots.length; i++) {
+                    const baseDir = baseRayDirections[i];
+                    const dot = projectedDots[i];
+                    const currentDir = baseDir.clone().applyEuler(euler);
+                    raycaster.direction.copy(currentDir);
+
+                    const targetPoint = new THREE.Vector3();
+                    raycaster.intersectBox(roomBox, targetPoint);
+
+                    if (targetPoint) {
+                        dot.position.copy(targetPoint);
+                        dot.lookAt(origin);
+                        dot.material.opacity = 0.15 + Math.sin(time * 5 + i) * 0.3;
+                    }
+                }
+            }
+
+            controls.update();
+            composer.render(); // Render through the pipeline instead of standard renderer
+        }
+    </script>
+</body>
+</html>
