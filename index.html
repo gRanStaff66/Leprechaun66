@@ -11,18 +11,12 @@
 
         #ui-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; }
 
-        .title-container { display: flex; justify-content: center; align-items: center; gap: 15px; padding-top: 20px; margin-bottom: 5px; flex-wrap: wrap; }
+        .title-container { display: flex; justify-content: center; align-items: center; gap: 15px; padding-top: 20px; margin-bottom: 5px; }
         .top-title { text-align: center; font-size: 2.4rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; padding-top: 0; background: linear-gradient(to right, #00FF87, #60EFFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(0,0,0,0.6)); margin: 0; }
         .clover-icon { font-size: 3.2rem; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(0,255,135,0.4)); animation: gentle-rock 3s infinite ease-in-out; }
         @keyframes gentle-rock { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
 
         .subtitle-saying { text-align: center; color: rgba(255,255,255,0.95); font-size: 1.15rem; font-style: italic; font-weight: 600; margin: 0 auto; max-width: 800px; text-shadow: 0 2px 4px rgba(0,0,0,1), 0 0 15px rgba(0,0,0,0.9); pointer-events: none; transition: opacity 0.4s ease; min-height: 30px; padding: 0 20px; }
-
-        @media (max-width: 640px) {
-            .top-title { font-size: 1.5rem; letter-spacing: 1px; }
-            .clover-icon { font-size: 2rem; }
-            .subtitle-saying { font-size: 0.9rem; }
-        }
 
         #bottom-container {
             position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
@@ -47,12 +41,6 @@
 
         .control-group { display: flex; align-items: center; gap: 12px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 25px; }
         .control-group:last-child { border-right: none; padding-right: 0; }
-
-        @media (max-width: 768px) {
-            #bottom-panel { flex-direction: column; gap: 15px; padding: 20px; max-height: 80vh; overflow-y: auto; }
-            #bottom-panel.collapsed { max-height: 0; padding-top: 0; padding-bottom: 0; }
-            .control-group { border-right: none; padding-right: 0; width: 100%; justify-content: center; flex-wrap: wrap; }
-        }
         .label { color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
 
         .btn-sm { padding: 8px 18px; border-radius: 10px; font-weight: 800; font-size: 11px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; color: white; text-transform: uppercase; }
