@@ -12,14 +12,16 @@
         #ui-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; }
 
         .title-container { display: flex; justify-content: center; align-items: center; gap: 15px; padding-top: 20px; margin-bottom: 5px; flex-wrap: wrap; }
-        .top-title { text-align: center; font-size: 2.4rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; padding-top: 0; background: linear-gradient(to right, #00FF87, #60EFFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(0,0,0,0.6)); margin: 0; }
-        .clover-icon { font-size: 3.2rem; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(0,255,135,0.4)); animation: gentle-rock 3s infinite ease-in-out; }
+        .top-title { text-align: center; font-size: 2.4rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; padding-top: 0; background: linear-gradient(to right, #00FF87, #60EFFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(0,0,0,0.6)); margin: 0; display: flex; gap: 0.3em; justify-content: center; }
+        .top-title span { display: inline-block; }
+        .clover-icon { font-size: 3.2rem; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(0,255,135,0.4)); animation: gentle-rock 3s infinite ease-in-out; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes gentle-rock { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
 
         .subtitle-saying { text-align: center; color: rgba(255,255,255,0.95); font-size: 1.15rem; font-style: italic; font-weight: 600; margin: 0 auto; max-width: 800px; text-shadow: 0 2px 4px rgba(0,0,0,1), 0 0 15px rgba(0,0,0,0.9); pointer-events: none; transition: opacity 0.4s ease; min-height: 30px; padding: 0 20px; }
 
         @media (max-width: 640px) {
-            .top-title { font-size: 1.5rem; letter-spacing: 1px; }
+            .top-title { font-size: 1.5rem; letter-spacing: 1px; flex-direction: column; gap: 0; line-height: 1.1; }
+            .top-title span { display: block; }
             .clover-icon { font-size: 2rem; }
             .subtitle-saying { font-size: 0.9rem; }
         }
@@ -114,6 +116,7 @@
                 overflow: hidden; margin-bottom: 0;
             }
             #bottom-panel.active { transform: translateY(0); opacity: 1; height: auto; overflow: visible; }
+            #panel-handle { display: block; }
 
             .control-group {
                 flex-direction: row; border-right: none; padding-right: 0;
@@ -125,8 +128,8 @@
             .atmosphere-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; width: 100%; }
             .btn-sm { width: 100%; text-align: center; padding: 10px 5px; font-size: 9px; }
 
-            input[type=range] { display: none; }
-            .stepper-btn { display: flex; }
+            input[type=range] { display: block; width: 60%; }
+            .stepper-btn { display: none; }
 
             .btn-rand { width: 100%; padding: 15px; font-size: 14px; }
         }
@@ -142,11 +145,16 @@
     <div id="toast">Copied to clipboard! 🍀</div>
 
     <div id="ui-wrapper">
+        <!-- Panel Backdrop -->
+        <div id="panel-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[90] hidden transition-opacity pointer-events-auto" onclick="toggleUI()"></div>
+
         <div>
             <div class="title-container">
-                <span class="clover-icon" style="animation-delay: 0s;">🍀</span>
-                <h1 class="top-title">Happy St Patrick's Day~!</h1>
-                <span class="clover-icon" style="animation-delay: -1.5s;">🍀</span>
+                <span class="clover-icon" id="left-clover" style="animation-delay: 0s;">☘️</span>
+                <h1 class="top-title">
+                    <span>Happy</span> <span>St Patrick's</span> <span>Day~!</span>
+                </h1>
+                <span class="clover-icon" id="right-clover" style="animation-delay: -1.5s;">☘️</span>
             </div>
             <div id="irish-saying" class="subtitle-saying"></div>
         </div>
@@ -156,14 +164,14 @@
                 <div class="control-group">
                     <span class="label">Atmosphere</span>
                     <div class="atmosphere-btns">
-                        <button class="btn-sm bg-meadow btn-active" onclick="changeScene('meadow', this)">Meadow</button>
-                        <button class="btn-sm bg-rainbow" onclick="changeScene('rainbow', this)">Rainbow</button>
-                        <button class="btn-sm bg-disco" onclick="changeScene('disco', this)">Disco</button>
+                        <button class="btn-sm bg-meadow btn-active" onclick="changeScene('meadow', this)">Irish Meadow</button>
+                        <button class="btn-sm bg-rainbow" onclick="changeScene('rainbow', this)">End O' the Rainbow</button>
+                        <button class="btn-sm bg-disco" onclick="changeScene('disco', this)">Disco Time</button>
                     </div>
                 </div>
 
                 <div class="control-group horde-group">
-                    <span class="label">Horde Size</span>
+                    <span class="label">Leprechauns</span>
                     <button class="stepper-btn" onclick="stepLep(-1)">−</button>
                     <input type="range" id="lep-slider" min="1" max="66" value="1" oninput="updateLepCount(this.value)">
                     <span id="count-display">1</span>
@@ -253,7 +261,16 @@
 
         window.toggleUI = function() {
             const panel = document.getElementById('bottom-panel');
+            const backdrop = document.getElementById('panel-backdrop');
             panel.classList.toggle('active');
+
+            const isOpen = panel.classList.contains('active');
+            if (isOpen) {
+                backdrop.classList.remove('hidden');
+            } else {
+                backdrop.classList.add('hidden');
+            }
+
             updateUIState();
         };
 
@@ -381,6 +398,10 @@
         }
 
         init();
+
+        let randomClickCount = 0;
+        let isEasterEggActive = false;
+        let easterEggTimer = 0;
 
         function updateCamera() {
             const aspect = window.innerWidth / window.innerHeight;
@@ -569,6 +590,25 @@
             headPivot.add(beardGroup);
 
             const hat = new THREE.Group(); hat.position.y = 0.35; headPivot.add(hat);
+
+            // Sunglasses for Easter Egg
+            const sunglasses = new THREE.Group();
+            sunglasses.position.set(0, -0.05, 0.38);
+            sunglasses.visible = isEasterEggActive;
+            headPivot.add(sunglasses);
+            lep.sunglasses = sunglasses;
+
+            const lensGeo = new THREE.BoxGeometry(0.25, 0.15, 0.05);
+            const lensMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            const leftLens = new THREE.Mesh(lensGeo, lensMat);
+            leftLens.position.x = -0.15;
+            const rightLens = new THREE.Mesh(lensGeo, lensMat);
+            rightLens.position.x = 0.15;
+            sunglasses.add(leftLens, rightLens);
+            const frame = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.05, 0.05), lensMat);
+            frame.position.y = 0.05;
+            sunglasses.add(frame);
+
             hat.add(new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.05, 16), mats.suit));
             const top = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.7, 16), mats.suit); top.position.y = 0.35; hat.add(top);
             const hBuckle = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.05), mats.gold); hBuckle.position.set(0, 0.1, 0.42); hat.add(hBuckle);
@@ -769,6 +809,12 @@
         }
 
         window.randomParty = function() {
+            randomClickCount++;
+
+            if (randomClickCount % 7 === 0) {
+                triggerEasterEgg();
+            }
+
             const c = Math.floor(Math.random()*66)+1;
             document.getElementById('lep-slider').value = c;
             window.updateLepCount(c);
@@ -778,6 +824,34 @@
             window.changeScene(t, document.querySelector(`.bg-${t}`));
         };
 
+        function triggerEasterEgg() {
+            isEasterEggActive = true;
+
+            // Zooming 4-leaf clover animation
+            const ec = document.getElementById('easter-clover');
+            ec.style.transform = 'translate(-50%, -50%) scale(0)';
+            ec.style.opacity = '1';
+
+            // Trigger reflow
+            void ec.offsetWidth;
+
+            ec.classList.add('zoom');
+            setTimeout(() => {
+                ec.classList.remove('zoom');
+                ec.style.opacity = '0';
+            }, 1000);
+
+            activeLeps.forEach(l => {
+                if (l.sunglasses) l.sunglasses.visible = true;
+
+                // 360 Spin
+                new THREE.Clock(); // Dummy for now, just use GSAP-like tween or manual offset
+                l.group.rotation.y += Math.PI * 2;
+            });
+
+            showToast("LUCKY 7! PARTY MODE ACTIVATED! 🍀");
+        }
+
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
@@ -785,9 +859,11 @@
 
             // Animate Leprechauns
             activeLeps.forEach(l => {
-                const s = (time * 4.2) + l.phase;
+                const speedMult = isEasterEggActive ? 8.4 : 4.2;
+                const jumpMult = isEasterEggActive ? 1.5 : 1;
+                const s = (time * speedMult) + l.phase;
                 l.hips.position.x = Math.sin(s) * 0.3;
-                l.hips.position.y = 1.9 + Math.abs(Math.sin(s*2)) * 0.15;
+                l.hips.position.y = 1.9 + Math.abs(Math.sin(s*2)) * 0.15 * jumpMult;
                 l.hips.rotation.y = Math.sin(s*0.5) * 0.25;
                 l.torso.rotation.y = -Math.sin(s*0.5) * 0.3;
                 const step = Math.sin(s);
