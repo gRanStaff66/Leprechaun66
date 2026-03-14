@@ -41,11 +41,8 @@
             max-width: 95vw; pointer-events: auto;
             height: 0; opacity: 0; transform: translateY(100%); overflow: hidden;
             margin-bottom: -1px;
-            position: relative;
         }
         #bottom-panel.active { height: auto; padding: 15px 35px; opacity: 1; transform: translateY(0); overflow: visible; }
-
-        #panel-handle { display: none; width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin: 10px auto 5px; }
 
         #quick-actions {
             background: rgba(10, 20, 10, 0.95); backdrop-filter: blur(15px);
@@ -78,13 +75,6 @@
         .bg-disco { background: #6b21a8; }
         .btn-rand { background: linear-gradient(90deg, #FF512F, #DD2476); }
         .btn-share { background: #0066ff; }
-
-        #easter-clover {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            font-size: 15rem; z-index: 2000; pointer-events: none; transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            filter: drop-shadow(0 0 30px rgba(0,255,135,0.8));
-        }
-        #easter-clover.zoom { transform: translate(-50%, -50%) scale(5); opacity: 0; }
 
         #toast {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
@@ -120,7 +110,7 @@
 
             #bottom-panel {
                 position: fixed; bottom: 70px; left: 0; width: 100%; max-width: 100vw;
-                flex-direction: column; gap: 15px; padding: 15px 20px 30px;
+                flex-direction: column; gap: 15px; padding: 25px 20px;
                 border-radius: 30px 30px 0 0; transform: translateY(120%);
                 opacity: 0; height: 0; display: grid !important; grid-template-columns: 1fr;
                 overflow: hidden; margin-bottom: 0;
@@ -152,30 +142,7 @@
         <div class="font-black tracking-[0.3em] uppercase text-xs">Wiring the Lights...</div>
     </div>
 
-    <div id="easter-clover">🍀</div>
-
-    <div id="toast">Copied to clipboard! ☘️</div>
-
-    <!-- Share Modal -->
-    <div id="share-modal" class="fixed inset-0 z-[1000] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
-        <div class="relative bg-zinc-900 border border-white/20 rounded-3xl p-8 max-w-sm w-full shadow-2xl transform transition-all">
-            <h3 class="text-2xl font-black text-white mb-4 flex items-center gap-2">
-                <span>☘️</span> Share the Luck
-            </h3>
-            <div id="share-content" class="bg-black/40 border border-white/10 rounded-xl p-4 text-zinc-300 text-sm italic mb-6 leading-relaxed">
-                <!-- Text populated by JS -->
-            </div>
-            <div class="flex gap-3">
-                <button onclick="copyAndClose()" class="flex-1 bg-green-500 hover:bg-green-400 text-black font-extrabold py-3 rounded-xl transition-colors uppercase text-xs tracking-widest">
-                    Copy Link
-                </button>
-                <button onclick="closeModal()" class="px-6 py-3 rounded-xl border border-white/10 text-white font-bold hover:bg-white/5 transition-colors uppercase text-xs tracking-widest">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
+    <div id="toast">Copied to clipboard! 🍀</div>
 
     <div id="ui-wrapper">
         <!-- Panel Backdrop -->
@@ -194,7 +161,6 @@
 
         <div id="bottom-container">
             <div id="bottom-panel" class="">
-                <div id="panel-handle"></div>
                 <div class="control-group">
                     <span class="label">Atmosphere</span>
                     <div class="atmosphere-btns">
@@ -218,8 +184,8 @@
             </div>
 
             <div id="quick-actions">
-                <button id="rand-btn" class="btn-sm btn-rand" onclick="randomParty()">🎰 Random</button>
-                <button id="share-btn" class="btn-sm btn-share" onclick="shareParty()">🔗 Share</button>
+                <button class="btn-sm btn-rand" onclick="randomParty()">🎰 Random</button>
+                <button class="btn-sm btn-share" onclick="shareParty()">🔗 Share</button>
                 <button id="toggle-ui" onclick="toggleUI()">⚙️ Controls</button>
             </div>
         </div>
@@ -315,7 +281,7 @@
 
             const isOpen = panel.classList.contains('active');
             btn.classList.toggle('active', isOpen);
-            btn.innerText = isOpen ? '✕ Close' : '🎨 Customize';
+            btn.innerText = isOpen ? '✕ Close' : '⚙️ Controls';
         }
 
         window.shareParty = function() {
@@ -323,22 +289,10 @@
             const url = window.location.href;
             const text = `${saying}\n\nJoin the party: ${url}`;
 
-            document.getElementById('share-content').innerText = text;
-            document.getElementById('share-modal').classList.remove('hidden');
-        };
-
-        window.closeModal = function() {
-            document.getElementById('share-modal').classList.add('hidden');
-        };
-
-        window.copyAndClose = function() {
-            const text = document.getElementById('share-content').innerText;
             navigator.clipboard.writeText(text).then(() => {
-                closeModal();
-                showToast("Copied to clipboard! ☘️");
+                showToast("Copied to clipboard! 🍀");
             }).catch(err => {
                 console.error('Failed to copy: ', err);
-                closeModal();
             });
         };
 
