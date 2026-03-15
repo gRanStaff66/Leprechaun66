@@ -11,12 +11,19 @@ import { Environment } from './Environment.js';
 
 let scene, camera, renderer, composer, bloomPass, clock, controls;
 let activeLeps = [];
-let lights = { amb: null, dir: null, fill: null };
+let lights = { amb: null, dir: null, fill: null, moon: null };
 let currentBg = 'meadow';
 let randomClickCount = 0;
 let discoClickCount = 0;
 let cloverRainGroup = null;
 window.isEasterEggActive = false;
+
+const unlockedEggs = {
+    lucky7: false,
+    goldRush: false,
+    cloverRain: false,
+    discoInferno: false
+};
 
 const irishSayings = [
     "\"An Irishman is never drunk as long as he has a blade of grass to hold onto.\"",
@@ -97,6 +104,10 @@ function init() {
     lights.fill.position.set(0, 15, 40);
     scene.add(lights.fill);
 
+    lights.moon = new THREE.DirectionalLight(0xaaccff, 0);
+    lights.moon.position.set(-20, 40, -10);
+    scene.add(lights.moon);
+
     Environment.init(scene);
 
     const renderScene = new RenderPass(scene, camera);
@@ -111,7 +122,9 @@ function init() {
         document.getElementById('count-display').innerText = val;
         const target = parseInt(val);
         while(activeLeps.length < target) {
-            const r = activeLeps.length === 0 ? 0 : 5 + Math.random() * 30;
+            const isCampfire = currentBg === 'campfire';
+            const minDist = isCampfire ? 12 : 5;
+            const r = activeLeps.length === 0 && !isCampfire ? 0 : minDist + Math.random() * 25;
             const a = Math.random() * Math.PI * 2;
             activeLeps.push(createLep(Math.cos(a)*r, Math.sin(a)*r, scene, window.isEasterEggActive));
         }
@@ -136,6 +149,8 @@ function init() {
         Environment.discoAssets.pinSpots.forEach(s => s.intensity = 0);
         Environment.campfireAssets.fireLight.intensity = 0;
 
+        lights.moon.intensity = 0;
+
         if(type === 'disco') {
             if(currentBg === 'disco') {
                 discoClickCount++;
@@ -157,12 +172,23 @@ function init() {
             scene.fog.color.setHex(0x050510);
             scene.fog.density = 0.01;
             lights.amb.color.setHex(0x111133);
-            lights.amb.intensity = 0.4;
+            lights.amb.intensity = 0.6;
             lights.dir.intensity = 0;
             lights.fill.color.setHex(0xffaa00);
-            lights.fill.intensity = 0.2;
-            Environment.campfireAssets.fireLight.intensity = 2.5;
+            lights.fill.intensity = 0.3;
+            lights.moon.intensity = 1.2;
+            Environment.campfireAssets.fireLight.intensity = 3.5;
             bloomPass.strength = 0.4;
+
+            // Re-spawn leps if they are too close to the big fire
+            activeLeps.forEach(l => {
+                const dist = Math.sqrt(l.group.position.x**2 + l.group.position.z**2);
+                if(dist < 10) {
+                    const a = Math.random() * Math.PI * 2;
+                    const r = 12 + Math.random() * 15;
+                    l.group.position.set(Math.cos(a)*r, 0, Math.sin(a)*r);
+                }
+            });
         } else {
             scene.fog.color.setHex(0x87CEEB);
             scene.fog.density = 0.002;
@@ -244,7 +270,22 @@ function init() {
     animate();
 }
 
+function unlockEgg(key, label, callback) {
+    if(!unlockedEggs[key]) {
+        unlockedEggs[key] = true;
+        const container = document.getElementById('unlocked-luck');
+        container.classList.remove('hidden');
+
+        const btn = document.createElement('button');
+        btn.className = 'btn-sm bg-zinc-800 border-zinc-700 hover:border-green-400 text-[9px] px-3 py-2';
+        btn.innerText = label;
+        btn.onclick = callback;
+        document.getElementById('luck-buttons').appendChild(btn);
+    }
+}
+
 function triggerEasterEgg() {
+    unlockEgg('lucky7', '🍀 Lucky 7', triggerEasterEgg);
     window.isEasterEggActive = true;
     const ec = document.getElementById('easter-clover');
     ec.style.transform = 'translate(-50%, -50%) scale(0)';
@@ -265,6 +306,7 @@ function triggerEasterEgg() {
 }
 
 function triggerGoldRush() {
+    unlockEgg('goldRush', '💰 Gold Rush', triggerGoldRush);
     showMegaToast("66 LEPRECHAUNS!", "GOLD RUSH INITIATED!", "💰");
     activeLeps.forEach(l => {
         l.group.traverse(node => {
@@ -276,6 +318,7 @@ function triggerGoldRush() {
 }
 
 window.triggerCloverRain = function() {
+    unlockEgg('cloverRain', '🌧️ Clover Rain', window.triggerCloverRain);
     showMegaToast("CLOVER RAIN!", "KEEP CLICKING FOR LUCK!", "🍀");
     if(!cloverRainGroup) {
         cloverRainGroup = new THREE.Group();
@@ -293,6 +336,7 @@ window.triggerCloverRain = function() {
 }
 
 function triggerDiscoInferno() {
+    unlockEgg('discoInferno', '🔥 Disco Inferno', triggerDiscoInferno);
     showMegaToast("DISCO INFERNO!", "HEAT IT UP!", "🔥");
     window.isDiscoInferno = true;
     setTimeout(() => { window.isDiscoInferno = false; discoClickCount = 0; }, 10000);
@@ -390,7 +434,7 @@ function animate() {
                 f.scale.setScalar(0.8 + Math.sin(time * 10 + f.userData.phase) * 0.2);
                 f.rotation.y += delta * 5;
             });
-            Environment.campfireAssets.fireLight.intensity = 2.5 + Math.sin(time * 20) * 0.5;
+            Environment.campfireAssets.fireLight.intensity = 3.5 + Math.sin(time * 20) * 0.5;
         }
         // Embers
         Environment.campfireAssets.embers.forEach(e => {
