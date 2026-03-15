@@ -11,7 +11,8 @@ export const Environment = {
     envs: {
         meadow: new THREE.Group(),
         rainbow: new THREE.Group(),
-        disco: new THREE.Group()
+        disco: new THREE.Group(),
+        campfire: new THREE.Group()
     },
 
     discoAssets: {
@@ -29,6 +30,12 @@ export const Environment = {
         creek: null
     },
 
+    campfireAssets: {
+        fireCore: null,
+        embers: [],
+        fireLight: null
+    },
+
     init(scene) {
         this.roomBox = new THREE.Box3(
             new THREE.Vector3(-this.ROOM_W/2, 0, -this.ROOM_D/2),
@@ -37,6 +44,7 @@ export const Environment = {
 
         this.buildOutdoors();
         this.buildDiscoRoom();
+        this.buildCampfire();
 
         Object.values(this.envs).forEach(e => {
             e.visible = false;
@@ -125,6 +133,27 @@ export const Environment = {
         this.meadowAssets.creek = this.createCreek();
         this.meadowAssets.creek.position.set(0, 0.1, -40);
         this.envs.meadow.add(this.meadowAssets.creek);
+
+        // Campfire basic landscape
+        const floorCamp = floorMeadow.clone();
+        floorCamp.material = floorMeadow.material.clone();
+        floorCamp.material.color.setHex(0x1a331a);
+        this.envs.campfire.add(floorCamp);
+
+        const skyCamp = skyMeadow.clone();
+        skyCamp.material = new THREE.MeshBasicMaterial({ color: 0x050510, side: THREE.BackSide });
+        this.envs.campfire.add(skyCamp);
+
+        // Add some trees to campfire too
+        for(let i=0; i<12; i++) {
+            const tree = this.createTree();
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 35 + Math.random() * 50;
+            tree.position.set(Math.cos(angle)*dist, 0, Math.sin(angle)*dist);
+            tree.rotation.y = Math.random() * Math.PI;
+            tree.scale.setScalar(2 + Math.random()*2);
+            this.envs.campfire.add(tree);
+        }
     },
 
     createTree() {
@@ -383,5 +412,67 @@ export const Environment = {
             speed: 0.5 + Math.random()
         };
         return group;
+    },
+
+    buildCampfire() {
+        // Logs
+        const logGeo = new THREE.CylinderGeometry(0.3, 0.3, 4, 8);
+        for(let i=0; i<6; i++) {
+            const log = new THREE.Mesh(logGeo, Materials.mats.wood);
+            log.rotation.z = Math.PI / 2;
+            log.rotation.y = (i / 6) * Math.PI * 2;
+            log.position.y = 0.3;
+            // Spread them slightly
+            const dist = 1.0;
+            log.position.x = Math.cos(log.rotation.y) * dist;
+            log.position.z = Math.sin(log.rotation.y) * dist;
+            this.envs.campfire.add(log);
+        }
+
+        // Fire Core
+        this.campfireAssets.fireCore = new THREE.Group();
+        this.campfireAssets.fireCore.position.y = 1;
+        this.envs.campfire.add(this.campfireAssets.fireCore);
+
+        for(let i=0; i<12; i++) {
+            const flame = new THREE.Mesh(
+                new THREE.ConeGeometry(0.5, 2, 8),
+                Materials.mats.fire
+            );
+            flame.position.y = 0.5;
+            flame.rotation.x = (Math.random() - 0.5) * 0.5;
+            flame.rotation.z = (Math.random() - 0.5) * 0.5;
+            flame.userData = { phase: Math.random() * Math.PI * 2 };
+            this.campfireAssets.fireCore.add(flame);
+        }
+
+        // Light
+        this.campfireAssets.fireLight = new THREE.PointLight(0xffaa00, 2, 30);
+        this.campfireAssets.fireLight.position.set(0, 2, 0);
+        this.campfireAssets.fireLight.castShadow = true;
+        this.envs.campfire.add(this.campfireAssets.fireLight);
+
+        // Embers
+        const emberGeo = new THREE.SphereGeometry(0.05, 4, 4);
+        const emberMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+        for(let i=0; i<30; i++) {
+            const ember = new THREE.Mesh(emberGeo, emberMat);
+            this.resetEmber(ember);
+            this.campfireAssets.embers.push(ember);
+            this.envs.campfire.add(ember);
+        }
+    },
+
+    resetEmber(ember) {
+        ember.position.set(
+            (Math.random() - 0.5) * 2,
+            0.5 + Math.random() * 2,
+            (Math.random() - 0.5) * 2
+        );
+        ember.userData = {
+            speed: 0.1 + Math.random() * 0.2,
+            vx: (Math.random() - 0.5) * 0.05,
+            vz: (Math.random() - 0.5) * 0.05
+        };
     }
 };

@@ -95,6 +95,17 @@
         }
         #toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+        #mega-toast {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+            background: rgba(0,0,0,0.85); color: #00FF87; padding: 40px 60px; border-radius: 40px;
+            font-weight: 900; font-size: 48px; z-index: 2100; opacity: 0; pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 100px rgba(0, 255, 135, 0.6);
+            border: 4px solid #00FF87; text-align: center; text-transform: uppercase;
+            letter-spacing: 4px; line-height: 1.2;
+        }
+        #mega-toast.visible { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
         #interaction-hint {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             color: white; font-weight: 900; text-transform: uppercase; letter-spacing: 4px;
@@ -166,6 +177,11 @@
     <div id="easter-clover">🍀</div>
 
     <div id="toast">Copied to clipboard! ☘️</div>
+    <div id="mega-toast">
+        <div class="toast-icon text-6xl mb-4">🍀</div>
+        <div class="toast-title">LUCKY 7!</div>
+        <div class="toast-sub text-xl opacity-80 mt-2">PARTY MODE ACTIVATED!</div>
+    </div>
 
     <div id="interaction-hint">
         <div class="mouse-icon">🖱️</div>
@@ -199,11 +215,11 @@
 
         <div>
             <div class="title-container">
-                <span class="clover-icon" id="left-clover" style="animation-delay: 0s;">☘️</span>
+                <span class="clover-icon cursor-pointer pointer-events-auto" id="left-clover" style="animation-delay: 0s;" onclick="if(window.triggerCloverRain) window.triggerCloverRain()">☘️</span>
                 <h1 class="top-title">
                     <span>Happy</span> <span>St Patrick's</span> <span>Day~!</span>
                 </h1>
-                <span class="clover-icon" id="right-clover" style="animation-delay: -1.5s;">☘️</span>
+                <span class="clover-icon cursor-pointer pointer-events-auto" id="right-clover" style="animation-delay: -1.5s;" onclick="if(window.triggerCloverRain) window.triggerCloverRain()">☘️</span>
             </div>
             <div id="irish-saying" class="subtitle-saying"></div>
         </div>
@@ -217,6 +233,7 @@
                         <button class="btn-sm bg-meadow btn-active" onclick="changeScene('meadow', this)">Irish Meadow</button>
                         <button class="btn-sm bg-rainbow" onclick="changeScene('rainbow', this)">End O' the Rainbow</button>
                         <button class="btn-sm bg-disco" onclick="changeScene('disco', this)">Disco Time</button>
+                        <button class="btn-sm bg-orange-900" onclick="changeScene('campfire', this)">Round the Campfire</button>
                     </div>
                 </div>
 

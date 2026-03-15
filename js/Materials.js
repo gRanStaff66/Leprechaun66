@@ -47,6 +47,20 @@ export const Materials = {
             bumpMap: this.textures.leather,
             bumpScale: 0.02
         });
+
+        this.mats.wood = new THREE.MeshStandardMaterial({
+            color: 0x4a2c0f,
+            roughness: 0.9,
+            bumpMap: this.textures.leather,
+            bumpScale: 0.05
+        });
+
+        this.mats.fire = new THREE.MeshBasicMaterial({
+            color: 0xff4400,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending
+        });
     },
 
     createBumpMap(type) {
