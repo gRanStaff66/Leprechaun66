@@ -77,34 +77,54 @@ export const Environment = {
         this.envs.rainbow.add(skyRainbow);
 
         // Rainbow specific
+        const rainbowX = 25;
+        const rainbowZ = -25;
+        // The rainbow bundle ends between x=25-40=-15 and x=25-(40-5*1.2)=-9
+        // We center the pot at the average: -12
+        const potX = -12;
+        const potZ = -25;
+
         const cols = [0xFF0000, 0xFF7F00, 0xFFFF00, 0x00FF00, 0x0000FF, 0x9400D3];
         cols.forEach((c, i) => {
             const arc = new THREE.Mesh(
                 new THREE.TorusGeometry(40 - i*1.2, 0.8, 12, 100, Math.PI),
-                new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.6 })
+                new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.5 })
             );
-            arc.position.set(25, -2, -25);
+            arc.position.set(rainbowX, -2, rainbowZ);
             this.envs.rainbow.add(arc);
         });
 
+        // Add a glow at the base of the rainbow
+        const glowGeo = new THREE.CylinderGeometry(8, 8, 1, 32);
+        const glowMat = new THREE.MeshBasicMaterial({
+            color: 0xFFFF00,
+            transparent: true,
+            opacity: 0.2,
+            blending: THREE.AdditiveBlending
+        });
+        const glow = new THREE.Mesh(glowGeo, glowMat);
+        glow.position.set(potX, 0.1, potZ);
+        this.envs.rainbow.add(glow);
+
         const potGroup = new THREE.Group();
-        potGroup.position.set(-15, 0, -25);
+        potGroup.position.set(potX, 0, potZ);
         this.envs.rainbow.add(potGroup);
 
+        const potScale = 1.3;
         const pot = new THREE.Mesh(
-            new THREE.SphereGeometry(5, 32, 20, 0, Math.PI*2, 0, Math.PI/1.5),
+            new THREE.SphereGeometry(5 * potScale, 32, 20, 0, Math.PI*2, 0, Math.PI/1.5),
             Materials.mats.leather
         );
         pot.rotation.x = Math.PI;
-        pot.position.y = 4.5;
+        pot.position.y = 4.5 * potScale;
         pot.castShadow = true;
         potGroup.add(pot);
 
         const coins = new THREE.Mesh(
-            new THREE.SphereGeometry(4.5, 20, 10, 0, Math.PI*2, 0, Math.PI/2),
+            new THREE.SphereGeometry(4.8 * potScale, 20, 10, 0, Math.PI*2, 0, Math.PI/2),
             Materials.mats.gold
         );
-        coins.position.y = 4.2;
+        coins.position.y = 4.2 * potScale;
         potGroup.add(coins);
 
         // MEADOW ENHANCEMENTS
