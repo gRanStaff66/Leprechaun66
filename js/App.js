@@ -14,6 +14,8 @@ let activeLeps = [];
 let lights = { amb: null, dir: null, fill: null };
 let currentBg = 'meadow';
 let randomClickCount = 0;
+let discoClickCount = 0;
+let cloverRainGroup = null;
 window.isEasterEggActive = false;
 
 const irishSayings = [
@@ -129,17 +131,38 @@ function init() {
         controls.target.set(0, 5, 0);
         controls.update();
 
+        // Reset All Environment Assets
+        Environment.discoAssets.mainLight.intensity = 0;
+        Environment.discoAssets.pinSpots.forEach(s => s.intensity = 0);
+        Environment.campfireAssets.fireLight.intensity = 0;
+
         if(type === 'disco') {
+            if(currentBg === 'disco') {
+                discoClickCount++;
+                if(discoClickCount >= 3) triggerDiscoInferno();
+            } else {
+                discoClickCount = 1;
+            }
             scene.fog.color.setHex(0x050510);
             scene.fog.density = 0.008;
             lights.amb.color.setHex(0x2a1a4a);
-            lights.amb.intensity = 1.8;
+            lights.amb.intensity = 2.16; // Boosted 20%
             lights.dir.intensity = 0;
             lights.fill.color.setHex(0xaa44ff);
-            lights.fill.intensity = 1.5;
-            Environment.discoAssets.mainLight.intensity = 1.5;
-            Environment.discoAssets.pinSpots.forEach(s => s.intensity = 150);
+            lights.fill.intensity = 1.8; // Boosted 20%
+            Environment.discoAssets.mainLight.intensity = 1.8; // Boosted 20%
+            Environment.discoAssets.pinSpots.forEach(s => s.intensity = 180);
             bloomPass.strength = 0.5;
+        } else if(type === 'campfire') {
+            scene.fog.color.setHex(0x050510);
+            scene.fog.density = 0.01;
+            lights.amb.color.setHex(0x111133);
+            lights.amb.intensity = 0.4;
+            lights.dir.intensity = 0;
+            lights.fill.color.setHex(0xffaa00);
+            lights.fill.intensity = 0.2;
+            Environment.campfireAssets.fireLight.intensity = 2.5;
+            bloomPass.strength = 0.4;
         } else {
             scene.fog.color.setHex(0x87CEEB);
             scene.fog.density = 0.002;
@@ -148,8 +171,6 @@ function init() {
             lights.dir.intensity = 1.8;
             lights.fill.color.setHex(0xaaddff);
             lights.fill.intensity = 0.5;
-            Environment.discoAssets.mainLight.intensity = 0;
-            Environment.discoAssets.pinSpots.forEach(s => s.intensity = 0);
             bloomPass.strength = 0.2;
         }
     };
@@ -191,9 +212,10 @@ function init() {
         const c = Math.floor(Math.random()*66)+1;
         document.getElementById('lep-slider').value = c;
         window.updateLepCount(c);
+        if (c === 66) triggerGoldRush();
         window.updateSaying();
-        const ts = ['meadow', 'rainbow', 'disco'];
-        const t = ts[Math.floor(Math.random()*3)];
+        const ts = ['meadow', 'rainbow', 'disco', 'campfire'];
+        const t = ts[Math.floor(Math.random()*4)];
         window.changeScene(t, document.querySelector(`.bg-${t}`));
     };
 
@@ -239,7 +261,52 @@ function triggerEasterEgg() {
         l.isSpinning = true;
         l.spinRemaining = Math.PI * 2;
     });
-    showToast("LUCKY 7! PARTY MODE ACTIVATED! 🍀");
+    showMegaToast("LUCKY 7!", "PARTY MODE ACTIVATED!", "🍀");
+}
+
+function triggerGoldRush() {
+    showMegaToast("66 LEPRECHAUNS!", "GOLD RUSH INITIATED!", "💰");
+    activeLeps.forEach(l => {
+        l.group.traverse(node => {
+            if (node.isMesh && node.material !== Materials.mats.skin) {
+                node.material = Materials.mats.gold;
+            }
+        });
+    });
+}
+
+window.triggerCloverRain = function() {
+    showMegaToast("CLOVER RAIN!", "KEEP CLICKING FOR LUCK!", "🍀");
+    if(!cloverRainGroup) {
+        cloverRainGroup = new THREE.Group();
+        scene.add(cloverRainGroup);
+    }
+    for(let i=0; i<20; i++) {
+        const clover = Environment.create3DClover();
+        clover.position.set((Math.random()-0.5)*60, 30 + Math.random()*20, (Math.random()-0.5)*60);
+        clover.userData = {
+            rotSpeed: new THREE.Vector3(Math.random(), Math.random(), Math.random()),
+            fallSpeed: 0.1 + Math.random()*0.2
+        };
+        cloverRainGroup.add(clover);
+    }
+}
+
+function triggerDiscoInferno() {
+    showMegaToast("DISCO INFERNO!", "HEAT IT UP!", "🔥");
+    window.isDiscoInferno = true;
+    setTimeout(() => { window.isDiscoInferno = false; discoClickCount = 0; }, 10000);
+}
+
+function showMegaToast(title, sub, icon) {
+    const toast = document.getElementById('mega-toast');
+    toast.querySelector('.toast-title').innerText = title;
+    toast.querySelector('.toast-sub').innerText = sub;
+    toast.querySelector('.toast-icon').innerText = icon;
+    toast.classList.add('visible');
+    setTimeout(() => {
+        toast.classList.remove('visible');
+    }, 4000);
 }
 
 function showToast(message) {
@@ -316,8 +383,27 @@ function animate() {
         Environment.meadowAssets.creek.position.z = -40 + Math.sin(time * 0.5) * 2;
     }
 
+    if(currentBg === 'campfire') {
+        // Fire animation
+        if(Environment.campfireAssets.fireCore) {
+            Environment.campfireAssets.fireCore.children.forEach(f => {
+                f.scale.setScalar(0.8 + Math.sin(time * 10 + f.userData.phase) * 0.2);
+                f.rotation.y += delta * 5;
+            });
+            Environment.campfireAssets.fireLight.intensity = 2.5 + Math.sin(time * 20) * 0.5;
+        }
+        // Embers
+        Environment.campfireAssets.embers.forEach(e => {
+            e.position.y += e.userData.speed;
+            e.position.x += e.userData.vx;
+            e.position.z += e.userData.vz;
+            if(e.position.y > 10) Environment.resetEmber(e);
+        });
+    }
+
     if(currentBg === 'disco') {
-        Environment.discoAssets.ballGroup.rotation.y += delta * 0.3;
+        const ballSpeed = window.isDiscoInferno ? 2.0 : 0.3;
+        Environment.discoAssets.ballGroup.rotation.y += delta * ballSpeed;
         Environment.discoAssets.ballGroup.rotation.z = Math.sin(time * 0.5) * 0.03;
 
         Environment.discoAssets.floorTiles.forEach(tile => {
@@ -358,9 +444,38 @@ function animate() {
 
         // Lasers
         Environment.discoAssets.lasers.forEach(l => {
-            l.rotation.x = l.userData.baseRotation.x + Math.sin(time * l.userData.speed) * 0.5;
-            l.rotation.z = l.userData.baseRotation.z + Math.cos(time * l.userData.speed) * 0.5;
+            const speed = window.isDiscoInferno ? l.userData.speed * 4 : l.userData.speed;
+            l.rotation.x = l.userData.baseRotation.x + Math.sin(time * speed) * 0.5;
+            l.rotation.z = l.userData.baseRotation.z + Math.cos(time * speed) * 0.5;
+            if(window.isDiscoInferno) {
+                l.children[0].material.color.setHex(0xff4400);
+            } else {
+                // Restore color
+                const idx = Environment.discoAssets.lasers.indexOf(l);
+                l.children[0].material.color.setHSL(idx / 8, 1, 0.5);
+            }
         });
+        if(window.isDiscoInferno) {
+            bloomPass.strength = 1.2;
+            lights.fill.color.setHex(0xff2200);
+        } else {
+            bloomPass.strength = 0.5;
+            lights.fill.color.setHex(0xaa44ff);
+        }
+    }
+
+    // Animate Clover Rain
+    if(cloverRainGroup) {
+        for(let i = cloverRainGroup.children.length - 1; i >= 0; i--) {
+            const c = cloverRainGroup.children[i];
+            c.position.y -= c.userData.fallSpeed;
+            c.rotation.x += c.userData.rotSpeed.x * 0.05;
+            c.rotation.y += c.userData.rotSpeed.y * 0.05;
+            c.rotation.z += c.userData.rotSpeed.z * 0.05;
+            if(c.position.y < -5) {
+                cloverRainGroup.remove(c);
+            }
+        }
     }
 
     controls.update();
