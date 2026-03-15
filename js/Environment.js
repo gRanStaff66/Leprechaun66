@@ -415,40 +415,41 @@ export const Environment = {
     },
 
     buildCampfire() {
-        // Logs
-        const logGeo = new THREE.CylinderGeometry(0.3, 0.3, 4, 8);
+        // Logs (3x scale)
+        const logScale = 3.0;
+        const logGeo = new THREE.CylinderGeometry(0.3 * logScale, 0.3 * logScale, 4 * logScale, 8);
         for(let i=0; i<6; i++) {
             const log = new THREE.Mesh(logGeo, Materials.mats.wood);
             log.rotation.z = Math.PI / 2;
             log.rotation.y = (i / 6) * Math.PI * 2;
-            log.position.y = 0.3;
+            log.position.y = 0.3 * logScale;
             // Spread them slightly
-            const dist = 1.0;
+            const dist = 1.0 * logScale;
             log.position.x = Math.cos(log.rotation.y) * dist;
             log.position.z = Math.sin(log.rotation.y) * dist;
             this.envs.campfire.add(log);
         }
 
-        // Fire Core
+        // Fire Core (3x scale)
         this.campfireAssets.fireCore = new THREE.Group();
-        this.campfireAssets.fireCore.position.y = 1;
+        this.campfireAssets.fireCore.position.y = 1 * logScale;
         this.envs.campfire.add(this.campfireAssets.fireCore);
 
         for(let i=0; i<12; i++) {
             const flame = new THREE.Mesh(
-                new THREE.ConeGeometry(0.5, 2, 8),
+                new THREE.ConeGeometry(0.5 * logScale, 2 * logScale, 8),
                 Materials.mats.fire
             );
-            flame.position.y = 0.5;
+            flame.position.y = 0.5 * logScale;
             flame.rotation.x = (Math.random() - 0.5) * 0.5;
             flame.rotation.z = (Math.random() - 0.5) * 0.5;
             flame.userData = { phase: Math.random() * Math.PI * 2 };
             this.campfireAssets.fireCore.add(flame);
         }
 
-        // Light
-        this.campfireAssets.fireLight = new THREE.PointLight(0xffaa00, 2, 30);
-        this.campfireAssets.fireLight.position.set(0, 2, 0);
+        // Light (Boosted distance)
+        this.campfireAssets.fireLight = new THREE.PointLight(0xffaa00, 3, 60);
+        this.campfireAssets.fireLight.position.set(0, 2 * logScale, 0);
         this.campfireAssets.fireLight.castShadow = true;
         this.envs.campfire.add(this.campfireAssets.fireLight);
 

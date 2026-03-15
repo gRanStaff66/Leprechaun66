@@ -107,11 +107,11 @@
         #mega-toast.visible { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
         #interaction-hint {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%);
             color: white; font-weight: 900; text-transform: uppercase; letter-spacing: 4px;
-            font-size: 1.2rem; pointer-events: none; z-index: 50; opacity: 0;
-            transition: opacity 1s ease; text-shadow: 0 0 20px rgba(0,255,135,0.8), 0 0 40px rgba(0,0,0,1);
-            display: flex; flex-direction: column; align-items: center; gap: 15px;
+            font-size: 0.8rem; pointer-events: none; z-index: 50; opacity: 0;
+            transition: opacity 1s ease; text-shadow: 0 0 10px rgba(0,255,135,0.8), 0 0 20px rgba(0,0,0,1);
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
         }
         #interaction-hint.visible { opacity: 1; }
         .mouse-icon { font-size: 2rem; animation: mouse-move 2s infinite ease-in-out; }
@@ -144,7 +144,7 @@
                 position: fixed; bottom: 70px; left: 0; width: 100%; max-width: 100vw;
                 flex-direction: column; gap: 15px; padding: 15px 20px 30px;
                 border-radius: 30px 30px 0 0; transform: translateY(120%);
-                opacity: 0; height: 0; display: grid !important; grid-template-columns: 1fr;
+                opacity: 0; height: 0; display: flex !important;
                 overflow: hidden; margin-bottom: 0;
             }
             #bottom-panel.active { transform: translateY(0); opacity: 1; height: auto; overflow: visible; }
@@ -243,6 +243,13 @@
                     <input type="range" id="lep-slider" min="1" max="66" value="1" oninput="updateLepCount(this.value)">
                     <span id="count-display">1</span>
                     <button class="stepper-btn" onclick="stepLep(1)">+</button>
+                </div>
+
+                <div id="unlocked-luck" class="control-group hidden">
+                    <span class="label">Unlocked Luck</span>
+                    <div id="luck-buttons" class="flex gap-2">
+                        <!-- Dynamic Buttons -->
+                    </div>
                 </div>
 
                 <div class="text-[9px] text-white/40 uppercase font-black leading-tight tracking-wider px-4 text-center">
