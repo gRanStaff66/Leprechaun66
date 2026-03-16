@@ -1,5 +1,7 @@
 # Leprechaun66
 
+[**Leprechaun66 Live Demo Link **](https://granstaff66.github.io/Leprechaun66)
+
 Welcome to **Leprechaun66**, a festive 3D experience built for St. Patrick's Day! Watch as a horde of up to 66 high-resolution leprechauns dance the night (or day) away in various lucky environments.
 
 ![Sizzle Reel](sizzle_reel.gif)
