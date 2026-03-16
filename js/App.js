@@ -135,6 +135,7 @@ function init() {
     };
 
     window.changeScene = function(type, btn) {
+        const wasAlreadyThisType = (currentBg === type);
         currentBg = type;
         document.querySelectorAll('.btn-sm').forEach(b => b.classList.remove('btn-active'));
         if(btn) btn.classList.add('btn-active');
@@ -152,12 +153,12 @@ function init() {
         lights.moon.intensity = 0;
 
         if(type === 'disco') {
-            if(currentBg === 'disco') {
+            if(wasAlreadyThisType) {
                 discoClickCount++;
-                if(discoClickCount >= 3) triggerDiscoInferno();
             } else {
                 discoClickCount = 1;
             }
+            if(discoClickCount >= 3) triggerDiscoInferno();
             scene.fog.color.setHex(0x050510);
             scene.fog.density = 0.008;
             lights.amb.color.setHex(0x2a1a4a);
@@ -235,7 +236,15 @@ function init() {
     window.randomParty = function() {
         randomClickCount++;
         if (randomClickCount % 7 === 0) triggerEasterEgg();
-        const c = Math.floor(Math.random()*66)+1;
+
+        // Weighting: 15% chance for 66 (Gold Rush), otherwise random 1-65
+        let c;
+        if (Math.random() < 0.15) {
+            c = 66;
+        } else {
+            c = Math.floor(Math.random() * 65) + 1;
+        }
+
         document.getElementById('lep-slider').value = c;
         window.updateLepCount(c);
         if (c === 66) triggerGoldRush();
@@ -251,14 +260,22 @@ function init() {
 
     // Interaction Hint UX
     const hint = document.getElementById('interaction-hint');
-    setTimeout(() => { hint.classList.add('visible'); }, 3000);
-    const hideHint = () => {
+    let hintTimeout = setTimeout(() => {
+        const panel = document.getElementById('bottom-panel');
+        if (panel && !panel.classList.contains('active')) {
+            hint.classList.add('visible');
+        }
+    }, 4000);
+
+    window.hideHint = () => {
+        if (hintTimeout) clearTimeout(hintTimeout);
+        hintTimeout = null;
         hint.classList.remove('visible');
-        window.removeEventListener('mousedown', hideHint);
-        window.removeEventListener('touchstart', hideHint);
+        window.removeEventListener('mousedown', window.hideHint);
+        window.removeEventListener('touchstart', window.hideHint);
     };
-    window.addEventListener('mousedown', hideHint);
-    window.addEventListener('touchstart', hideHint);
+    window.addEventListener('mousedown', window.hideHint);
+    window.addEventListener('touchstart', window.hideHint);
 
     setTimeout(() => {
         document.getElementById('loading').style.opacity = '0';
@@ -369,6 +386,10 @@ function updateUIState() {
     const isOpen = panel.classList.contains('active');
     btn.classList.toggle('active', isOpen);
     btn.innerText = isOpen ? '✕ Close' : '⚙️ Controls';
+
+    if (isOpen && window.hideHint) {
+        window.hideHint();
+    }
 }
 
 function updateCamera() {
