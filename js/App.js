@@ -8,6 +8,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { Materials } from './Materials.js';
 import { createLep } from './Leprechaun.js';
 import { Environment } from './Environment.js';
+import { AudioManager } from './AudioManager.js';
 
 let scene, camera, renderer, composer, bloomPass, clock, controls;
 
@@ -51,6 +52,7 @@ const irishSayings = [
 ];
 
 function init() {
+    AudioManager.init();
     Materials.init();
 
     scene = new THREE.Scene();
@@ -159,6 +161,9 @@ function init() {
     window.changeScene = function(type, btn) {
         const wasAlreadyThisType = (currentBg === type);
         currentBg = type;
+
+        AudioManager.playScene(type);
+
         document.querySelectorAll('.btn-sm').forEach(b => b.classList.remove('btn-active'));
         if(btn) btn.classList.add('btn-active');
         Object.keys(Environment.envs).forEach(k => Environment.envs[k].visible = (k === type));
@@ -253,6 +258,22 @@ function init() {
         const text = `${saying}\n\nJoin the party: ${url}`;
         document.getElementById('share-content').innerText = text;
         document.getElementById('share-modal').classList.remove('hidden');
+    };
+
+    window.toggleSound = function() {
+        const isMuted = AudioManager.toggleMute();
+        const btn = document.getElementById('mute-btn');
+        if (isMuted) {
+            btn.innerText = "🔇 Sound Off";
+            btn.classList.remove('active');
+        } else {
+            btn.innerText = "🔊 Sound On";
+            btn.classList.add('active');
+        }
+    };
+
+    window.updateVolume = function(val) {
+        AudioManager.setVolume(val);
     };
 
     window.randomParty = function() {
