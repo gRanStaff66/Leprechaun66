@@ -10,6 +10,15 @@ import { createLep } from './Leprechaun.js';
 import { Environment } from './Environment.js';
 
 let scene, camera, renderer, composer, bloomPass, clock, controls;
+
+// Expose for automation
+window._app = {
+    get scene() { return scene; },
+    get camera() { return camera; },
+    get controls() { return controls; },
+    get unlockedEggs() { return unlockedEggs; },
+    toggleEgg: toggleEgg
+};
 let activeLeps = [];
 let lights = { amb: null, dir: null, fill: null, moon: null };
 let currentBg = 'meadow';
@@ -17,12 +26,13 @@ let randomClickCount = 0;
 let discoClickCount = 0;
 let cloverRainGroup = null;
 window.isEasterEggActive = false;
+window.isDiscoInferno = false;
 
 const unlockedEggs = {
-    lucky7: false,
-    goldRush: false,
-    cloverRain: false,
-    discoInferno: false
+    lucky7: { discovered: false, active: false, label: '🍀 Lucky 7' },
+    goldRush: { discovered: false, active: false, label: '💰 Gold Rush' },
+    cloverRain: { discovered: false, active: false, label: '🌧️ Clover Rain' },
+    discoInferno: { discovered: false, active: false, label: '🔥 Disco Inferno' }
 };
 
 const irishSayings = [
@@ -126,7 +136,19 @@ function init() {
             const minDist = isCampfire ? 12 : 5;
             const r = activeLeps.length === 0 && !isCampfire ? 0 : minDist + Math.random() * 25;
             const a = Math.random() * Math.PI * 2;
-            activeLeps.push(createLep(Math.cos(a)*r, Math.sin(a)*r, scene, window.isEasterEggActive));
+            const lep = createLep(Math.cos(a)*r, Math.sin(a)*r, scene, window.isEasterEggActive);
+
+            // Apply Gold Rush if active
+            if (unlockedEggs.goldRush.active) {
+                lep.group.traverse(node => {
+                    if (node.isMesh && node.material !== Materials.mats.skin) {
+                        if (!node.userData.originalMat) node.userData.originalMat = node.material;
+                        node.material = Materials.mats.gold;
+                    }
+                });
+            }
+
+            activeLeps.push(lep);
         }
         while(activeLeps.length > target) {
             const l = activeLeps.pop();
@@ -247,7 +269,8 @@ function init() {
 
         document.getElementById('lep-slider').value = c;
         window.updateLepCount(c);
-        if (c === 66) triggerGoldRush();
+        // Explicitly check if it's 66 to trigger Gold Rush
+        if (parseInt(c) === 66) triggerGoldRush();
         window.updateSaying();
         const ts = ['meadow', 'rainbow', 'disco', 'campfire'];
         const t = ts[Math.floor(Math.random()*4)];
@@ -287,76 +310,115 @@ function init() {
     animate();
 }
 
-function unlockEgg(key, label, callback) {
-    if(!unlockedEggs[key]) {
-        unlockedEggs[key] = true;
+window.unlockEgg = function(key) {
+    const egg = unlockedEggs[key];
+    if (!egg.discovered) {
+        egg.discovered = true;
+        egg.active = true; // Auto-activate on first discovery
+
         const container = document.getElementById('unlocked-luck');
         container.classList.remove('hidden');
 
         const btn = document.createElement('button');
-        btn.className = 'btn-sm bg-zinc-800 border-zinc-700 hover:border-green-400 text-[9px] px-3 py-2';
-        btn.innerText = label;
-        btn.onclick = callback;
+        btn.id = `egg-btn-${key}`;
+        btn.className = 'btn-sm bg-zinc-800 border-zinc-700 hover:border-green-400 text-[9px] px-3 py-2 btn-active';
+        btn.innerText = egg.label;
+        btn.onclick = () => toggleEgg(key);
         document.getElementById('luck-buttons').appendChild(btn);
+
+        // Apply initial trigger effect
+        applyEggEffect(key, true);
+    }
+}
+
+function toggleEgg(key) {
+    const egg = unlockedEggs[key];
+    egg.active = !egg.active;
+    const btn = document.getElementById(`egg-btn-${key}`);
+    if (egg.active) {
+        btn.classList.add('btn-active');
+    } else {
+        btn.classList.remove('btn-active');
+    }
+    applyEggEffect(key, egg.active);
+}
+
+function applyEggEffect(key, isActive) {
+    if (key === 'lucky7') {
+        window.isEasterEggActive = isActive;
+        activeLeps.forEach(l => {
+            if (l.sunglasses) l.sunglasses.visible = isActive;
+            if (isActive) {
+                l.isSpinning = true;
+                l.spinRemaining = Math.PI * 2;
+            }
+        });
+        if (isActive) {
+            const ec = document.getElementById('easter-clover');
+            ec.style.transform = 'translate(-50%, -50%) scale(0)';
+            ec.style.opacity = '1';
+            void ec.offsetWidth;
+            ec.classList.add('zoom');
+            setTimeout(() => {
+                ec.classList.remove('zoom');
+                ec.style.opacity = '0';
+            }, 1000);
+            showMegaToast("LUCKY 7!", "PARTY MODE ACTIVATED!", "🍀");
+        }
+    } else if (key === 'goldRush') {
+        activeLeps.forEach(l => {
+            l.group.traverse(node => {
+                if (node.isMesh && node.material !== Materials.mats.skin) {
+                    if (isActive) {
+                        if (!node.userData.originalMat) node.userData.originalMat = node.material;
+                        node.material = Materials.mats.gold;
+                    } else {
+                        if (node.userData.originalMat) node.material = node.userData.originalMat;
+                    }
+                }
+            });
+        });
+        if (isActive) showMegaToast("GOLD RUSH!", "ALL GOLD EVERYTHING!", "💰");
+    } else if (key === 'cloverRain') {
+        if (isActive) {
+            if (!cloverRainGroup) {
+                cloverRainGroup = new THREE.Group();
+                scene.add(cloverRainGroup);
+            }
+            showMegaToast("CLOVER RAIN!", "KEEP CLICKING FOR LUCK!", "🍀");
+        }
+    } else if (key === 'discoInferno') {
+        window.isDiscoInferno = isActive;
+        if (isActive) showMegaToast("DISCO INFERNO!", "HEAT IT UP!", "🔥");
     }
 }
 
 function triggerEasterEgg() {
-    unlockEgg('lucky7', '🍀 Lucky 7', triggerEasterEgg);
-    window.isEasterEggActive = true;
-    const ec = document.getElementById('easter-clover');
-    ec.style.transform = 'translate(-50%, -50%) scale(0)';
-    ec.style.opacity = '1';
-    void ec.offsetWidth;
-    ec.classList.add('zoom');
-    setTimeout(() => {
-        ec.classList.remove('zoom');
-        ec.style.opacity = '0';
-    }, 1000);
-
-    activeLeps.forEach(l => {
-        if (l.sunglasses) l.sunglasses.visible = true;
-        l.isSpinning = true;
-        l.spinRemaining = Math.PI * 2;
-    });
-    showMegaToast("LUCKY 7!", "PARTY MODE ACTIVATED!", "🍀");
+    unlockEgg('lucky7');
 }
 
 function triggerGoldRush() {
-    unlockEgg('goldRush', '💰 Gold Rush', triggerGoldRush);
-    showMegaToast("66 LEPRECHAUNS!", "GOLD RUSH INITIATED!", "💰");
-    activeLeps.forEach(l => {
-        l.group.traverse(node => {
-            if (node.isMesh && node.material !== Materials.mats.skin) {
-                node.material = Materials.mats.gold;
-            }
-        });
-    });
+    unlockEgg('goldRush');
 }
 
 window.triggerCloverRain = function() {
-    unlockEgg('cloverRain', '🌧️ Clover Rain', window.triggerCloverRain);
-    showMegaToast("CLOVER RAIN!", "KEEP CLICKING FOR LUCK!", "🍀");
-    if(!cloverRainGroup) {
-        cloverRainGroup = new THREE.Group();
-        scene.add(cloverRainGroup);
-    }
-    for(let i=0; i<20; i++) {
-        const clover = Environment.create3DClover();
-        clover.position.set((Math.random()-0.5)*60, 30 + Math.random()*20, (Math.random()-0.5)*60);
-        clover.userData = {
-            rotSpeed: new THREE.Vector3(Math.random(), Math.random(), Math.random()),
-            fallSpeed: 0.1 + Math.random()*0.2
-        };
-        cloverRainGroup.add(clover);
+    unlockEgg('cloverRain');
+    if (unlockedEggs.cloverRain.active) {
+        // Force spawn some clovers when clicked, even if already active
+        for(let i=0; i<20; i++) {
+            const clover = Environment.create3DClover();
+            clover.position.set((Math.random()-0.5)*60, 30 + Math.random()*20, (Math.random()-0.5)*60);
+            clover.userData = {
+                rotSpeed: new THREE.Vector3(Math.random(), Math.random(), Math.random()),
+                fallSpeed: 0.1 + Math.random()*0.2
+            };
+            cloverRainGroup.add(clover);
+        }
     }
 }
 
 function triggerDiscoInferno() {
-    unlockEgg('discoInferno', '🔥 Disco Inferno', triggerDiscoInferno);
-    showMegaToast("DISCO INFERNO!", "HEAT IT UP!", "🔥");
-    window.isDiscoInferno = true;
-    setTimeout(() => { window.isDiscoInferno = false; discoClickCount = 0; }, 10000);
+    unlockEgg('discoInferno');
 }
 
 function showMegaToast(title, sub, icon) {
@@ -531,6 +593,17 @@ function animate() {
 
     // Animate Clover Rain
     if(cloverRainGroup) {
+        // Persistent spawn if active
+        if (unlockedEggs.cloverRain.active && Math.random() < 0.1) {
+            const clover = Environment.create3DClover();
+            clover.position.set((Math.random()-0.5)*60, 40, (Math.random()-0.5)*60);
+            clover.userData = {
+                rotSpeed: new THREE.Vector3(Math.random(), Math.random(), Math.random()),
+                fallSpeed: 0.1 + Math.random()*0.2
+            };
+            cloverRainGroup.add(clover);
+        }
+
         for(let i = cloverRainGroup.children.length - 1; i >= 0; i--) {
             const c = cloverRainGroup.children[i];
             c.position.y -= c.userData.fallSpeed;

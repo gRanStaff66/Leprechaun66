@@ -2,7 +2,18 @@
 
 Welcome to **Leprechaun66**, a festive 3D experience built for St. Patrick's Day! Watch as a horde of up to 66 high-resolution leprechauns dance the night (or day) away in various lucky environments.
 
+![Sizzle Reel](sizzle_reel.gif)
+
 [**Live Demo Link**](https://granstaff66.github.io/Leprechaun66)
+
+## Screenshots
+
+<p align="center">
+  <img src="screenshot_0.png" width="45%" />
+  <img src="screenshot_1.png" width="45%" />
+  <img src="screenshot_2.png" width="45%" />
+  <img src="screenshot_3.png" width="45%" />
+</p>
 
 ## Features
 
@@ -27,6 +38,17 @@ Welcome to **Leprechaun66**, a festive 3D experience built for St. Patrick's Day
   - **Auto-Rotation**: The camera will begin to rotate slowly after 5 seconds of inactivity.
 - **Unlocked Luck**: Discovering Easter eggs adds a button to your control panel to re-trigger or toggle the effect.
 
+## Hidden Luck (Easter Eggs)
+
+The party has hidden secrets! Here is how to find them:
+
+1.  **Lucky 7**: Click the **🎰 Random** button multiple times. Every 7th click triggers the Lucky 7 party mode!
+2.  **Gold Rush**: Increase the leprechaun count to exactly **66**.
+3.  **Clover Rain**: Click on the **☘️ shamrock icons** in the top title bar.
+4.  **Disco Inferno**: While in the **Disco Time** scene, click the "Disco Time" button **three times consecutively**.
+
+Once discovered, these effects can be toggled manually from the **Unlocked Luck** section in the control panel.
+
 ## Tech Stack
 
 - **Three.js**: 3D rendering, animation, and post-processing.
@@ -47,6 +69,10 @@ Since this project uses ES Modules, it requires a local web server to run.
    python3 -m http.server 8080
    ```
    Then, open your browser and go to `http://localhost:8080`.
+
+## Built with Gemini Canvas & Jules
+
+This project was developed through a collaborative effort between the user and **Jules**, an AI software engineer, utilizing **Gemini Canvas**.
 
 ## License
 
